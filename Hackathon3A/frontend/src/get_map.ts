@@ -1,57 +1,42 @@
+export async function getMapFileData(level: number): Promise<{ methods: string[]; map2D: string[][] }> {
+    type Map2D = string[][];
 
-export function getMapFileData()
-{
-	// Définir le type pour la map 2D
-	type Map2D = string[][];
+    // Génère le nom du fichier selon le level
+    const fileUrl = `map${level}.txt`;
 
-	// Chemin vers le fichier .txt (doit être accessible depuis le serveur)
-	const fileUrl: string = 'map1.txt';
+    try {
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error(`Impossible de lire le fichier : ${response.statusText}`);
 
-	async function loadMap(): Promise<{ methods: string[]; map2D: Map2D }> {
-		try {
-			const response = await fetch(fileUrl);
-			if (!response.ok) throw new Error(`Impossible de lire le fichier : ${response.statusText}`);
+        const text: string = await response.text();
+        const lines: string[] = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
 
-			const text: string = await response.text();
-			const lines: string[] = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-			
-			let methods: string[] = [];
-			let map: string[] = [];
-			let section: 'methods' | 'map' | null = null;
+        let methods: string[] = [];
+        let map: string[] = [];
+        let section: 'methods' | 'map' | null = null;
 
-			lines.forEach(line => {
-				if (line.startsWith('methods:')) {
-					section = 'methods';
-					const rest = line.slice('methods:'.length).trim();
-					if (rest.length) methods = rest.split(',').map(s => s.trim());
-				} else if (line.startsWith('map:')) {
-					section = 'map';
-				} else {
-					if (section === 'methods') {
-						methods.push(...line.split(',').map(s => s.trim()));
-					} else if (section === 'map') {
-						map.push(line);
-					}
-				}
-			});
+        lines.forEach(line => {
+            if (line.startsWith('methods:')) {
+                section = 'methods';
+                const rest = line.slice('methods:'.length).trim();
+                if (rest.length) methods = rest.split(',').map(s => s.trim());
+            } else if (line.startsWith('map:')) {
+                section = 'map';
+            } else {
+                if (section === 'methods') {
+                    methods.push(line);
+                } else if (section === 'map') {
+                    map.push(line);
+                }
+            }
+        });
 
-			const map2D: Map2D = map.map(row => row.split(''));
+        const map2D: Map2D = map.map(row => row.split(''));
 
-			return { methods, map2D };
+        return { methods, map2D };
 
-		} catch (err) {
-			console.error(err);
-			return { methods: [], map2D: [] };
-		}
-	}
-
-	// Exemple d'utilisation
-	loadMap().then(({ methods, map2D }) => {
-		console.log("Méthodes :", methods);
-		console.log("Map 2D :", map2D);
-
-		// Exemple : accéder à une case spécifique
-		//console.log("Case [2][2] :", map2D[2][2]); // 'P'
-	});
-
+    } catch (err) {
+        console.error(err);
+        return { methods: [], map2D: [] };
+    }
 }

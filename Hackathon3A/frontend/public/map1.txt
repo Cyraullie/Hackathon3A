@@ -1,7 +1,7 @@
 methods:
-	avancer,
-	reculer,
-	droite,
+	avancer
+	reculer
+	droite
 	gauche
 map:
 	000000000000

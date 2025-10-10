@@ -4,7 +4,9 @@ import viteLogo from '/vite.svg'
 import { setupCounter } from './counter.ts'
 import { getMapFileData } from './get_map.ts'
 
-getMapFileData()
+const { methods, map2D } = await getMapFileData(1);
+console.log("methods :", methods);
+console.log("map :", map2D);
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <a href="https://vite.dev" target="_blank">
