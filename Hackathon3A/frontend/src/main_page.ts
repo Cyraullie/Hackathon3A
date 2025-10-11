@@ -10,51 +10,110 @@ import { GameController } from "./game/GameController";
 import { createPromptBox } from "./ui/PromptBox";
 
 async function main() {
-  const { scene } = createScene("renderCanvas");
-  const map = await loadMap("/maps/maps2.txt");
+	const { scene } = createScene("renderCanvas");
+	const map = await loadMap("/maps/maps2.txt");
 
-  const builder = new MapBuilder(scene, map);
-  builder.build();
+	const builder = new MapBuilder(scene, map);
+	builder.build();
 
-  let startX = 0, startZ = 0;
-  map.forEach((row, z) =>
-    row.forEach((cell, x) => {
-      if (cell === "P") { startX = x; startZ = z; }
-    })
-  );
+	let startX = 0, startZ = 0;
+	map.forEach((row, z) =>
+		row.forEach((cell, x) => {
+		if (cell === "P") { startX = x; startZ = z; }
+		})
+	);
 
-  const player = new Player(scene, startX, startZ);
-  const controller = new GameController(scene, map, player);
+	const player = new Player(scene, startX, startZ);
+	const controller = new GameController(scene, map, player);
 
-  // prompt box (keeps the same behavior)
-  createPromptBox(async (prompt) => {
-    try {
-      const res = await fetch("http://localhost:3000/api/ai/prompt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await res.json();
+	createPromptBox(async (prompt) => {
+		try {
+		const res = await fetch("http://localhost:3000/api/ai/prompt", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ prompt }),
+		});
+		const data = await res.json();
 
-      if (data.command) {
+		const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
+
+		// Récupère ou crée le conteneur pour le code (entre les {})
+		let codeContainer = methodsUsedDiv.querySelector('.code-content');
+		if (!codeContainer) {
+			codeContainer = document.createElement('div');
+			codeContainer.classList.add('code-content');
+			codeContainer.style.marginLeft = '20px';
+			methodsUsedDiv.insertBefore(codeContainer, methodsUsedDiv.querySelector('p:last-child'));
+		}
+
+		// Supprime tous les messages temporaires (erreurs rouges) avant d’ajouter le nouveau
+		const oldErrors = methodsUsedDiv.querySelectorAll('.temp-error');
+		oldErrors.forEach(e => e.remove());
+
+		if (data.command) {
         console.log("🧩 Commande reçue :", data.command);
 
-        const commands = data.command.split(",").map(c => c.trim()).filter(Boolean);
+        const commands = data.command.split(",").map(c => c.trim());
+        const validCommands = ["MOVE_UP", "MOVE_DOWN", "MOVE_LEFT", "MOVE_RIGHT"];
+
+        let hasValid = false;
 
         for (const cmd of commands) {
-          await controller.execute(cmd);
-          await new Promise(r => setTimeout(r, 400));
+          if (validCommands.includes(cmd)) {
+            hasValid = true;
+
+			// Ajoute la commande de manière persistante
+            const cmdElement = document.createElement('div');
+            cmdElement.textContent = cmd + "();";
+            cmdElement.style.fontFamily = 'monospace';
+            cmdElement.style.paddingLeft = '10px';
+            cmdElement.style.color = '#00c853';
+            codeContainer.appendChild(cmdElement);
+
+            await controller.execute(cmd);
+            await new Promise(r => setTimeout(r, 400));
+          } else {
+            // Affiche temporairement les textes non-valides en rouge
+            const tempError = document.createElement('div');
+            tempError.textContent = cmd;
+            tempError.classList.add('temp-error');
+            tempError.style.color = 'red';
+            tempError.style.fontWeight = 'bold';
+            tempError.style.marginTop = '5px';
+            tempError.style.marginLeft = '20px';
+            methodsUsedDiv.insertBefore(tempError, methodsUsedDiv.querySelector('p:last-child'));
+          }
         }
+
       } else {
-        console.warn("⚠ Aucune commande valide reçue :", data);
+        // Aucun contenu → message temporaire
+        const errorMsg = document.createElement('div');
+        errorMsg.textContent = "⚠ Aucune commande valide reçue";
+        errorMsg.classList.add('temp-error');
+        errorMsg.style.color = 'red';
+        errorMsg.style.fontWeight = 'bold';
+        errorMsg.style.marginTop = '5px';
+        errorMsg.style.marginLeft = '20px';
+        methodsUsedDiv.insertBefore(errorMsg, methodsUsedDiv.querySelector('p:last-child'));
       }
+
     } catch (err) {
       console.error("Erreur de communication avec le backend :", err);
+
+      const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
+      const oldErrors = methodsUsedDiv.querySelectorAll('.temp-error');
+      oldErrors.forEach(e => e.remove());
+
+      const errorMsg = document.createElement('div');
+      errorMsg.textContent = "❌ Erreur de communication avec le backend";
+      errorMsg.classList.add('temp-error');
+      errorMsg.style.color = 'red';
+      errorMsg.style.fontWeight = 'bold';
+      errorMsg.style.marginTop = '5px';
+      errorMsg.style.marginLeft = '20px';
+      methodsUsedDiv.insertBefore(errorMsg, methodsUsedDiv.querySelector('p:last-child'));
     }
   });
-
-  // Return controller so run() can use it
-  return { controller };
 }
 
 export async function run() {
@@ -76,7 +135,9 @@ export async function run() {
       </div>
       <div id="left_part">
         <div id="methods_used">
-          methods used
+			<p>{</p>
+			<p>//le code qui va s'executer va apparaitre ici</p>
+			<p> }</p>
         </div>
         <div id="prompt">
 
@@ -84,30 +145,48 @@ export async function run() {
       </div>
       <div id="chat">
         <!-- chat UI will be injected here -->
-		<div style="padding:10px;">
-			<input type="text" id="chatInput" placeholder="Ask the AI for moves..." style="width:70%; padding:6px;" />
+		<div style="padding:10px; width: 80%">
+			<input type="text" id="chatInput" placeholder="Pose tes questions ici" style="width:70%; padding:6px;" />
 			<button id="sendChat">Send</button>
-			</div>
-		<div id="chatLog" style="padding:10px; max-height:300px; overflow:auto; font-size:0.9rem;"></div>
+		</div>
+		<div id="chatLog" style="padding:10px; height:calc(100vh - 140px); max-height:calc(100vh - 140px); overflow:auto;  overflow-y: auto; font-size:0.9rem;">
+		</div>
 		
       </div>
     </div>
   </div>
   `
 
-  // Wait for main to finish and get controller
-  const { controller } = await main();
+	main();
+	const methodsList = document.querySelector<HTMLDivElement>('#methods_list')!;
 
-  const methodsList = document.querySelector<HTMLAnchorElement>('#methods_list')!
-  methodsList.textContent = methods.join(', ')
+	// On vide d'abord le contenu
+	methodsList.innerHTML = "";
 
-  // Récupère les éléments
-  const chatButton = document.querySelector<HTMLButtonElement>('.chatbot')!
-  const chatIcon = document.querySelector<HTMLImageElement>('#chat_icon')!
-  const leftPart = document.querySelector<HTMLDivElement>('#left_part')!
-const chatDiv = document.querySelector<HTMLDivElement>('#chat')!
+	// Pour chaque méthode, on crée un petit encadré (span)
+	methods.forEach(method => {
+		const badge = document.createElement('span');
+		badge.textContent = method;
+		badge.style.display = 'inline-block';
+		badge.style.padding = '4px 8px';
+		badge.style.margin = '4px';
+		badge.style.border = '1px solid #888';
+		badge.style.borderRadius = '8px';
+		badge.style.backgroundColor = '#f4f4f4';
+		badge.style.fontWeight = 'bold';
+		badge.style.color = '#000';
+		badge.style.fontSize = '0.9rem';
+		badge.style.fontFamily = 'monospace';
 
+		methodsList.appendChild(badge);
+	});
 
+	
+	// Récupère les éléments
+	const chatButton = document.querySelector<HTMLButtonElement>('.chatbot')!
+	const chatIcon = document.querySelector<HTMLImageElement>('#chat_icon')!
+	const leftPart = document.querySelector<HTMLDivElement>('#left_part')!
+	const chatDiv = document.querySelector<HTMLDivElement>('#chat')!
 
   // Initially hidden
   chatDiv.style.display = 'none';
@@ -120,7 +199,7 @@ const chatDiv = document.querySelector<HTMLDivElement>('#chat')!
 
     if (chatVisible) {
       leftPart.style.display = 'none'
-      chatDiv.style.display = 'block'
+      chatDiv.style.display = 'flex'
       chatIcon.src = close_icon
       chatIcon.alt = "close chat"
     } else {
@@ -144,13 +223,6 @@ const chatDiv = document.querySelector<HTMLDivElement>('#chat')!
 
       if (data.command) {
         console.log("🧩 Commande reçue :", data.command);
-
-        const commands = data.command.split(",").map((c: string) => c.trim()).filter(Boolean);
-
-        for (const cmd of commands) {
-          await controller.execute(cmd);
-          await new Promise(r => setTimeout(r, 400));
-        }
       } else {
         console.warn("⚠ Aucune commande valide reçue :", data);
       } 
@@ -167,26 +239,63 @@ const chatDiv = document.querySelector<HTMLDivElement>('#chat')!
   const chatInput = document.querySelector<HTMLInputElement>('#chatInput')!
   const chatLog = document.querySelector<HTMLDivElement>('#chatLog')!
 
-  sendBtn.addEventListener('click', async (e) => {
-    e.preventDefault()
-	console.log(chatInput.value);
-    const prompt = chatInput.value.trim()
-	console.log(prompt);
-    if (!prompt) return
+ sendBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
+  const prompt = chatInput.value.trim();
+  if (!prompt) return;
 
-    chatLog.innerHTML += `<div><strong>You:</strong> ${escapeHtml(prompt)}</div>`
-    chatInput.value = ''
+  // --- User message (right aligned)
+  const userMsg = document.createElement('div');
+  userMsg.style.textAlign = 'right';
+  userMsg.innerHTML = `
+    <div style="
+      display: inline-block;
+      background-color: #4f8cff;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 12px;
+      margin: 5px 0;
+      max-width: 70%;
+      word-wrap: break-word;
+      text-align: left;
+    ">
+      ${escapeHtml(prompt)}
+    </div>
+  `;
+  chatLog.appendChild(userMsg);
+  chatInput.value = '';
 
-    try {
-      const data = await sendPromptToBackend(prompt)
-      const aiText = data.command ?? JSON.stringify(data)
-      chatLog.innerHTML += `<div><strong>AI:</strong> ${escapeHtml(aiText)}</div>`
-      chatLog.scrollTop = chatLog.scrollHeight
-    } catch (err) {
-      chatLog.innerHTML += `<div style="color:crimson">Error sending prompt. See console.</div>`
-    }
-  })
+  try {
+    const data = await sendPromptToBackend(prompt);
+    const aiText = data.command ?? JSON.stringify(data);
 
+    // --- AI message (left aligned)
+    const aiMsg = document.createElement('div');
+    aiMsg.style.textAlign = 'left';
+    aiMsg.innerHTML = `
+      <div style="
+        display: inline-block;
+        background-color: #e5e5e5;
+        color: #000;
+        padding: 8px 12px;
+        border-radius: 12px;
+        margin: 5px 0;
+        max-width: 70%;
+        word-wrap: break-word;
+      ">
+        ${escapeHtml(aiText)}
+      </div>
+    `;
+    chatLog.appendChild(aiMsg);
+
+    chatLog.scrollTop = chatLog.scrollHeight;
+  } catch (err) {
+    const errorMsg = document.createElement('div');
+    errorMsg.style.color = 'crimson';
+    errorMsg.textContent = 'Error sending prompt. See console.';
+    chatLog.appendChild(errorMsg);
+  }
+});
   // small utility to avoid inserting raw HTML from AI/prompt
   function escapeHtml(s: string) {
     return s.replace(/[&<>"']/g, (c) => ({
