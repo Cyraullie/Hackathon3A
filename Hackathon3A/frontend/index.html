@@ -24,7 +24,7 @@
     <div class="popup">
       <div class="popup-header">
         <span>Leaderboard</span>
-        <button id="closePopup">&times;</button>
+        <button id="closePopup">X</button>
       </div>
       <div style="margin-bottom: 10px;">
                 
@@ -45,9 +45,11 @@
         const popupOverlay = document.getElementById("popupOverlay");
         const popupContent = document.getElementById("popupContent");
         const closePopup = document.getElementById("closePopup");
+        
         closePopup.addEventListener("click", () => {
-        popupOverlay.style.display = "none";
-      });
+          console.log("close popup")
+          popupOverlay.style.display = "none";
+        });
 
       
 
@@ -69,10 +71,8 @@
           // Sort descending by score
           data.sort((a, b) => b.score - a.score);
             popupContent.innerHTML = `
-              
-              <h3>Leaderboard</h3>
               ${data
-                .map((u) => `<div>${u.id}. ${u.name} — ${u.score}</div>`)
+                .map((u) => `<div>${u.name} — <b>${u.score}</b></div>`)
                 .join("")}
             `;
 
