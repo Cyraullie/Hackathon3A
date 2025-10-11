@@ -16,7 +16,7 @@ exports.info = (req, res) => {
 exports.connexion = (req, res) => {
   const db = req.app.get('db');
 
-  db.all('SELECT * FROM users', (err, rows) => {
+  db.all('SELECT * FROM users ORDER BY score DESC', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
