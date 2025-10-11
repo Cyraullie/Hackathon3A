@@ -1,11 +1,3 @@
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #ececec;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
 /* Button to open popup */
 #openPopup {
@@ -66,3 +58,16 @@ body {
   text-align: center;
   color: #333;
 }
+/* Add this at the end of your style.css */
+.popup-content h3 {
+  margin-bottom: 10px;
+}
+
+.popup-content div {
+  background-color: #fff;
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
