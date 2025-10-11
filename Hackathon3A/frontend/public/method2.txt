@@ -1,0 +1,12 @@
+client:
+	avancer
+	reculer
+	droite
+	gauche
+	boucle
+server:
+	MOVE_UP
+	MOVE_DOWN
+	MOVE_RIGHT
+	MOVE_LEFT
+	LOOP

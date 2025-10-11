@@ -5,13 +5,12 @@ export function createPromptBox(
 ) {
   const container = document.createElement("div");
   container.style.position = "relative";
-  container.style.width = "100% - 20px";
-  container.style.height = "99%";
+  container.style.width = "calc(100% - 21px)";
+  container.style.height = "calc(100% - 21px)";
   container.style.background = "rgba(30, 30, 30, 0.95)";
   container.style.border = "1px solid #555";
   container.style.borderRadius = "12px";
   container.style.padding = "10px";
-  container.style.boxShadow = "0 0 15px rgba(0,0,0,0.3)";
   container.style.display = "flex";
   container.style.flexDirection = "column";
   container.style.zIndex = "10";
@@ -26,8 +25,8 @@ export function createPromptBox(
 
   const input = document.createElement("textarea");
   input.placeholder = "Décris ton intention ici...";
-  input.style.flex = "1";
-  input.style.minHeight = "40px";
+  input.style.height = "100%";
+  input.style.minHeight = "20px";
   input.style.resize = "none";
   input.style.border = "none";
   input.style.borderRadius = "6px";
@@ -66,5 +65,13 @@ export function createPromptBox(
   const parent = document.getElementById(parentId);
   if (parent) parent.appendChild(container);
   else document.body.appendChild(container);
+
+
+	input.addEventListener('keydown', (e) => {
+	if (e.key === 'Enter') {
+		e.preventDefault(); // empêche un éventuel saut de ligne
+		sendBtn.click(); // simule un clic sur le bouton
+	}
+});
 }
 
