@@ -1,0 +1,146 @@
+
+/* Button to open popup */
+#openPopup {
+  padding: 10px 20px;
+  background-color: #0078d7;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#closePopup {
+      border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+  z-index: 10;
+
+}
+
+/* Popup background overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+/* Popup window */
+.popup {
+  background-color: #242424;
+  border: 2px solid white;
+  border-radius: 8px;
+  width: 350px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+/* Popup title bar */
+.popup-header {
+  background-color: black;
+  color: white;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.popup-header button {
+  background: none;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.popup-content {
+  padding: 20px;
+  text-align: center;
+  color: #333;
+}
+/* Add this at the end of your style.css */
+.popup-content h3 {
+  margin-bottom: 10px;
+}
+
+.popup-content div {
+  background-color: lightcyan;
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid gray;
+}
+
+/* Center the input and button horizontally */
+.popup > div[style] {
+  display: flex;
+  justify-content: center; /* centers them horizontally */
+  align-items: center;     /* centers them vertically */
+  gap: 10px;               /* adds space between input and button */
+  margin: 10px 0;
+}
+
+/* Style the input field */
+#input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 70%;
+  font-size: 14px;
+}
+
+/* Style the Post button */
+#post {
+  padding: 8px 14px;
+  border: none;
+  background-color: gray;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#post:hover {
+  background-color: #005fa3;
+}.popup-header {
+  background-color: black;
+  color: white;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  position: relative; /* allows absolute positioning for centering */
+  font-weight: bold;
+}
+
+.popup-header span {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  width: 100%;
+}
+
+.popup-header button {
+  background: none;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: auto;
+}
+

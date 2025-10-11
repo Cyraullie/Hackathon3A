@@ -44,14 +44,14 @@ app.post('/info', (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id: this.lastID, name, score });
   });
-});
+}); 
 
 // GET endpoint to list all users
 app.get('/connexion', (req, res) => {
-  db.all('SELECT * FROM users', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+ db.all('SELECT * FROM users ORDER BY score DESC LIMIT 10', (err, rows) => {
+  if (err) return res.status(500).json({ error: err.message });
+  res.json(rows);
+});
 });
 
 app.use("/api/ai", aiRoutes);
