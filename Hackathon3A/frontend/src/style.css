@@ -96,6 +96,8 @@ h1 {
 
 #methods_used {
 	flex: 8;
+	text-align: left;
+	padding-left: 20px;
 }
 
 .logo {

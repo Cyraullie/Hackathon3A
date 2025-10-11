@@ -34,28 +34,86 @@ async function main() {
 			body: JSON.stringify({ prompt }),
 		});
 		const data = await res.json();
-		if (data.command) {
-	console.log("🧩 Commande reçue :", data.command);
 
-	const commands = data.command.split(",").map(c => c.trim());
+		const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
 
-	const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
-
-	for (const cmd of commands) {
-		await controller.execute(cmd);
-		await new Promise(r => setTimeout(r, 400));
-
-		const cmdElement = document.createElement('div');
-        cmdElement.textContent = cmd;
-        methodsUsedDiv.appendChild(cmdElement);
-	}
-	} else {
-	console.warn("⚠ Aucune commande valide reçue :", data);
-	}
-		} catch (err) {
-		console.error("Erreur de communication avec le backend :", err);
+		// Récupère ou crée le conteneur pour le code (entre les {})
+		let codeContainer = methodsUsedDiv.querySelector('.code-content');
+		if (!codeContainer) {
+			codeContainer = document.createElement('div');
+			codeContainer.classList.add('code-content');
+			codeContainer.style.marginLeft = '20px';
+			methodsUsedDiv.insertBefore(codeContainer, methodsUsedDiv.querySelector('p:last-child'));
 		}
-	});
+
+		// Supprime tous les messages temporaires (erreurs rouges) avant d’ajouter le nouveau
+		const oldErrors = methodsUsedDiv.querySelectorAll('.temp-error');
+		oldErrors.forEach(e => e.remove());
+
+		if (data.command) {
+        console.log("🧩 Commande reçue :", data.command);
+
+        const commands = data.command.split(",").map(c => c.trim());
+        const validCommands = ["MOVE_UP", "MOVE_DOWN", "MOVE_LEFT", "MOVE_RIGHT"];
+
+        let hasValid = false;
+
+        for (const cmd of commands) {
+          if (validCommands.includes(cmd)) {
+            hasValid = true;
+
+			// Ajoute la commande de manière persistante
+            const cmdElement = document.createElement('div');
+            cmdElement.textContent = cmd + "();";
+            cmdElement.style.fontFamily = 'monospace';
+            cmdElement.style.paddingLeft = '10px';
+            cmdElement.style.color = '#00c853';
+            codeContainer.appendChild(cmdElement);
+
+            await controller.execute(cmd);
+            await new Promise(r => setTimeout(r, 400));
+          } else {
+            // Affiche temporairement les textes non-valides en rouge
+            const tempError = document.createElement('div');
+            tempError.textContent = cmd;
+            tempError.classList.add('temp-error');
+            tempError.style.color = 'red';
+            tempError.style.fontWeight = 'bold';
+            tempError.style.marginTop = '5px';
+            tempError.style.marginLeft = '20px';
+            methodsUsedDiv.insertBefore(tempError, methodsUsedDiv.querySelector('p:last-child'));
+          }
+        }
+
+      } else {
+        // Aucun contenu → message temporaire
+        const errorMsg = document.createElement('div');
+        errorMsg.textContent = "⚠ Aucune commande valide reçue";
+        errorMsg.classList.add('temp-error');
+        errorMsg.style.color = 'red';
+        errorMsg.style.fontWeight = 'bold';
+        errorMsg.style.marginTop = '5px';
+        errorMsg.style.marginLeft = '20px';
+        methodsUsedDiv.insertBefore(errorMsg, methodsUsedDiv.querySelector('p:last-child'));
+      }
+
+    } catch (err) {
+      console.error("Erreur de communication avec le backend :", err);
+
+      const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
+      const oldErrors = methodsUsedDiv.querySelectorAll('.temp-error');
+      oldErrors.forEach(e => e.remove());
+
+      const errorMsg = document.createElement('div');
+      errorMsg.textContent = "❌ Erreur de communication avec le backend";
+      errorMsg.classList.add('temp-error');
+      errorMsg.style.color = 'red';
+      errorMsg.style.fontWeight = 'bold';
+      errorMsg.style.marginTop = '5px';
+      errorMsg.style.marginLeft = '20px';
+      methodsUsedDiv.insertBefore(errorMsg, methodsUsedDiv.querySelector('p:last-child'));
+    }
+  });
 }
 
 export async function run() {
@@ -77,7 +135,9 @@ export async function run() {
       </div>
       <div id="left_part">
         <div id="methods_used">
-          methods used
+			<p>{</p>
+			<p>//le code qui va s'executer va apparaitre ici</p>
+			<p> }</p>
         </div>
         <div id="prompt">
 
