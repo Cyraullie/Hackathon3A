@@ -85,8 +85,8 @@ export async function run() {
       </div>
       <div id="chat">
         <!-- chat UI will be injected here -->
-		<div style="padding:10px;">
-			<input type="text" id="chatInput" placeholder="Ask the AI for moves..." style="width:70%; padding:6px;" />
+		<div style="padding:10px; width: 80%">
+			<input type="text" id="chatInput" placeholder="Pose tes questions ici" style="width:70%; padding:6px;" />
 			<button id="sendChat">Send</button>
 		</div>
 		<div id="chatLog" style="padding:10px; height:calc(100vh - 140px); max-height:calc(100vh - 140px); overflow:auto;  overflow-y: auto; font-size:0.9rem;">
