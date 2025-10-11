@@ -1,4 +1,7 @@
-import { Animation, Vector3, Scene, Color3 } from "@babylonjs/core";
+import { Scene, Animation, Vector3, Color3, MeshBuilder, StandardMaterial } from "@babylonjs/core";
+
+import * as GUI from "@babylonjs/gui";
+
 
 export function moveTo(scene: Scene, mesh, target: Vector3, duration = 10) {
   const anim = new Animation("moveAnim", "position", 60, Animation.ANIMATIONTYPE_VECTOR3);
@@ -19,6 +22,44 @@ function jump(scene, mesh, height = 1, duration = 20) {
     { frame: duration, value: mesh.position.y },
   ]);
   scene.beginDirectAnimation(mesh, [anim], 0, duration, false);
+}
+
+
+export async function loopCircle(scene: Scene, mesh, count = 3, radius = 2): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const ui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("loopUI");
+    const text = new GUI.TextBlock();
+    text.text = `↻ ${count}`;
+    text.color = "white";
+    text.fontSize = 40;
+    text.outlineWidth = 6;
+    text.outlineColor = "black";
+    text.top = "-300px";
+    ui.addControl(text);
+
+    const center = mesh.position.clone();
+    let angle = 0;
+    let loops = 0;
+
+    const update = scene.onBeforeRenderObservable.add(() => {
+      angle += 0.05;
+      mesh.position.x = center.x + Math.cos(angle) * radius;
+      mesh.position.z = center.z + Math.sin(angle) * radius;
+
+      if (angle >= Math.PI * 2) {
+        angle = 0;
+        loops++;
+        const remaining = count - loops;
+        text.text = `↻ ${remaining > 0 ? remaining : "✔"}`;
+
+        if (remaining <= 0) {
+          scene.onBeforeRenderObservable.remove(update);
+          ui.dispose();
+          winAnimation(scene, mesh).then(() => resolve());
+        }
+      }
+    });
+  });
 }
 
 export async function winAnimation(scene: Scene, mesh): Promise<void> {

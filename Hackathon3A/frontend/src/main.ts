@@ -3,7 +3,7 @@ import { loadMap } from "./core/MapLoader";
 import { Player } from "./game/Player";
 import { MapBuilder } from "./game/MapBuilder";
 import { winAnimation, failAnimation } from "./core/Animations";
-
+import { loopCircle } from "./core/Animations";
 async function main() {
   const { scene } = createScene("renderCanvas");
   const map = await loadMap("/maps/maps2.txt");
@@ -20,7 +20,6 @@ async function main() {
 
   const player = new Player(scene, startX, startZ);
 
-  console.log("✅ Scène prête. Appuie sur V pour victoire, F pour échec.");
 
   window.addEventListener("keydown", (e) => {
     if (e.key.toLowerCase() === "v") {
@@ -28,6 +27,11 @@ async function main() {
     }
     if (e.key.toLowerCase() === "f") {
       failAnimation(scene, player.mesh);
+    }
+  });
+   window.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "l") {
+      loopCircle(scene, player.mesh, 3, 2);
     }
   });
 }
