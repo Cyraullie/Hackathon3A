@@ -20,9 +20,9 @@ export class GameController {
   async execute(command: string) {
     const { x, z } = this.player.pos;
     let newX = x, newZ = z;
-	if (command === "MOVE_UP") newZ += 11;
+	if (command === "MOVE_UP") newZ += 1;
 
-	if (command === "MOVE_UP") newZ -= 11;
+	if (command === "MOVE_DOWN") newZ -= 1;
     if (command === "ONE_MOVE_UP") newZ += 1;
     if (command === "ONE_MOVE_DOWN") newZ -= 1;
     if (command === "MOVE_LEFT") newX -= 1;
