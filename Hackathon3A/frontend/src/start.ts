@@ -1,4 +1,3 @@
-import './style.css'
 
 import { setupStartGame } from './start_game.ts'
 const module = await import('./main_page.ts')

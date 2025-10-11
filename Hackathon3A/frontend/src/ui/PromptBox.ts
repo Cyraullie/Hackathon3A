@@ -1,9 +1,12 @@
-export function createPromptBox(onSend: (text: string) => void) {
+
+export function createPromptBox(
+  onSend: (text: string) => void,
+  parentId: string = "prompt" // 👈 par défaut, cible ton div #prompt
+) {
   const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.bottom = "20px";
-  container.style.right = "20px";
-  container.style.width = "320px";
+  container.style.position = "relative";
+  container.style.width = "100% - 20px";
+  container.style.height = "99%";
   container.style.background = "rgba(30, 30, 30, 0.95)";
   container.style.border = "1px solid #555";
   container.style.borderRadius = "12px";
@@ -11,7 +14,7 @@ export function createPromptBox(onSend: (text: string) => void) {
   container.style.boxShadow = "0 0 15px rgba(0,0,0,0.3)";
   container.style.display = "flex";
   container.style.flexDirection = "column";
-  container.style.zIndex = "1000";
+  container.style.zIndex = "10";
   container.style.backdropFilter = "blur(8px)";
 
   const title = document.createElement("div");
@@ -24,11 +27,10 @@ export function createPromptBox(onSend: (text: string) => void) {
   const input = document.createElement("textarea");
   input.placeholder = "Décris ton intention ici...";
   input.style.flex = "1";
-  input.style.minHeight = "60px";
+  input.style.minHeight = "40px";
   input.style.resize = "none";
   input.style.border = "none";
   input.style.borderRadius = "6px";
-  input.style.padding = "6px";
   input.style.outline = "none";
   input.style.fontSize = "14px";
   input.style.background = "#222";
@@ -61,6 +63,8 @@ export function createPromptBox(onSend: (text: string) => void) {
   container.appendChild(input);
   container.appendChild(sendBtn);
 
-  document.body.appendChild(container);
+  const parent = document.getElementById(parentId);
+  if (parent) parent.appendChild(container);
+  else document.body.appendChild(container);
 }
 

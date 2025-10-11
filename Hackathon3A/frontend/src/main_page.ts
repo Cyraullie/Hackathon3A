@@ -1,4 +1,4 @@
-import './style.css'
+
 import { getMapFileData } from './get_map.ts'
 import chat_bot from './chat-bot.svg'
 import close_icon from './close.svg'
@@ -69,14 +69,14 @@ export async function run() {
 				<img id="chat_icon" src="${chat_bot}" alt="chat bot logo" />
 			</button>
 			<div id="game">
-	  			<canvas id="renderCanvas" width="1200" height="900"></canvas>
+	  			<canvas id="renderCanvas"></canvas>
 			</div>
 			<div id="left_part">
 				<div id="methods_used">
 					methods used
 				</div>
 				<div id="prompt">
-					prompt
+
 				</div>
 			</div>
 			<div id="chat">
