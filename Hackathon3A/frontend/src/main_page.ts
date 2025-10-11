@@ -88,8 +88,9 @@ export async function run() {
 		<div style="padding:10px;">
 			<input type="text" id="chatInput" placeholder="Ask the AI for moves..." style="width:70%; padding:6px;" />
 			<button id="sendChat">Send</button>
-			</div>
-		<div id="chatLog" style="padding:10px; max-height:300px; overflow:auto; font-size:0.9rem;"></div>
+		</div>
+		<div id="chatLog" style="padding:10px; height:calc(100vh - 140px); max-height:calc(100vh - 140px); overflow:auto;  overflow-y: auto; font-size:0.9rem;">
+		</div>
 		
       </div>
     </div>
@@ -138,7 +139,7 @@ export async function run() {
 
     if (chatVisible) {
       leftPart.style.display = 'none'
-      chatDiv.style.display = 'block'
+      chatDiv.style.display = 'flex'
       chatIcon.src = close_icon
       chatIcon.alt = "close chat"
     } else {
@@ -148,8 +149,6 @@ export async function run() {
       chatIcon.alt = "open chat"
     }
   })
-
-// Wait for main to finish and get controller
 
   // Helper: send prompt to backend and execute returned commands
   async function sendPromptToBackend(prompt: string) {
