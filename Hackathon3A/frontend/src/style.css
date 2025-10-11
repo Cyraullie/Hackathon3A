@@ -36,10 +36,73 @@ h1 {
 }
 
 #app {
-  max-width: 1280px;
+  width: 100vw;
+  height: 100vh;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
+}
+
+#game_page {
+  width: 100%;
+  height: 100vh;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+#methods {
+	width: 100%;
+	text-align: initial;
+}
+
+#methods_list {
+	color: #bcbcbc;
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+#center_part {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  margin: 0;
+  flex: 8;
+}
+
+#left_part {
+	flex: 3;
+	display: flex;
+	flex-direction: column;
+}
+
+#chat {
+	flex: 3;
+	border-color: #888;
+	border-width: 1px;
+	border-style: solid;
+	display: none;
+}
+
+#game {
+	flex: 10;
+	border-color: #888;
+	border-width: 1px;
+	border-style: solid;
+}
+
+#prompt {
+	flex: 2;
+	border-color: #888;
+	border-width: 1px;
+	border-style: solid;
+}
+
+#methods_used {
+	flex: 8;
+	border-color: #888;
+	border-width: 1px;
+	border-style: solid;
 }
 
 .logo {
@@ -53,6 +116,36 @@ h1 {
 }
 .logo.vanilla:hover {
   filter: drop-shadow(0 0 2em #3178c6aa);
+}
+
+.chatbot {
+	position: absolute;
+	top: 30px;    /* distance depuis le haut du conteneur */
+	right: 10px;  /* distance depuis la droite */
+	width: 60px;              /* largeur du bouton */
+	height: 60px;             /* même hauteur → cercle parfait */
+	border-radius: 50%;       /* rend le bouton rond */
+	border: none;             /* supprime le contour par défaut */
+	background-color: #333;   /* couleur du fond */
+	display: flex;            /* centre l'image */
+	align-items: center;
+	padding: 0;
+	justify-content: center;
+	cursor: pointer;
+	transition: transform 0.2s ease, background-color 0.3s;
+	z-index: 1000;            /* si tu veux qu’il passe au-dessus d’autres div */
+}
+
+.chatbot:hover {
+	background-color: #555;   /* effet au survol */
+	transform: scale(1.1);    /* petit zoom */
+}
+
+.chatbot img {
+	width: 180%;               /* taille de l'image relative au bouton */
+	height: 180%;
+	object-fit: contain;      /* garde les proportions */
+	pointer-events: none;     /* évite que l'image bloque le clic */
 }
 
 .card {

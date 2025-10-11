@@ -2,7 +2,7 @@ export async function getMapFileData(level: number): Promise<{ methods: string[]
     type Map2D = string[][];
 
     // Génère le nom du fichier selon le level
-    const fileUrl = `map${level}.txt`;
+    const fileUrl = `maps/map${level}.txt`;
 
     try {
         const response = await fetch(fileUrl);
