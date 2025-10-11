@@ -11,46 +11,52 @@ import { GameController } from "./game/GameController";
 import { createPromptBox } from "./ui/PromptBox";
 
 async function main() {
-  const { scene } = createScene("renderCanvas");
-  const map = await loadMap("/maps/maps2.txt");
+	const { scene } = createScene("renderCanvas");
+	const map = await loadMap("/maps/maps2.txt");
 
-  const builder = new MapBuilder(scene, map);
-  builder.build();
+	const builder = new MapBuilder(scene, map);
+	builder.build();
 
-  let startX = 0, startZ = 0;
-  map.forEach((row, z) =>
-    row.forEach((cell, x) => {
-      if (cell === "P") { startX = x; startZ = z; }
-    })
-  );
+	let startX = 0, startZ = 0;
+	map.forEach((row, z) =>
+		row.forEach((cell, x) => {
+		if (cell === "P") { startX = x; startZ = z; }
+		})
+	);
 
-  const player = new Player(scene, startX, startZ);
-  const controller = new GameController(scene, map, player);
+	const player = new Player(scene, startX, startZ);
+	const controller = new GameController(scene, map, player);
 
-  createPromptBox(async (prompt) => {
-    try {
-      const res = await fetch("http://localhost:3000/api/ai/prompt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await res.json();
-	if (data.command) {
-  console.log("🧩 Commande reçue :", data.command);
+	createPromptBox(async (prompt) => {
+		try {
+		const res = await fetch("http://localhost:3000/api/ai/prompt", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ prompt }),
+		});
+		const data = await res.json();
+		if (data.command) {
+	console.log("🧩 Commande reçue :", data.command);
 
-  const commands = data.command.split(",").map(c => c.trim());
+	const commands = data.command.split(",").map(c => c.trim());
 
-  for (const cmd of commands) {
-    await controller.execute(cmd);
-    await new Promise(r => setTimeout(r, 400));
-  }
-} else {
-  console.warn("⚠ Aucune commande valide reçue :", data);
-}
-    } catch (err) {
-      console.error("Erreur de communication avec le backend :", err);
-    }
-  });
+	const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
+
+	for (const cmd of commands) {
+		await controller.execute(cmd);
+		await new Promise(r => setTimeout(r, 400));
+
+		const cmdElement = document.createElement('div');
+        cmdElement.textContent = cmd;
+        methodsUsedDiv.appendChild(cmdElement);
+	}
+	} else {
+	console.warn("⚠ Aucune commande valide reçue :", data);
+	}
+		} catch (err) {
+		console.error("Erreur de communication avec le backend :", err);
+		}
+	});
 }
 
 export async function run() {
@@ -87,8 +93,29 @@ export async function run() {
 	`
 
 	main();
-	const methodsList = document.querySelector<HTMLAnchorElement>('#methods_list')!
-	methodsList.textContent = methods.join(', ')
+	const methodsList = document.querySelector<HTMLDivElement>('#methods_list')!;
+
+	// On vide d'abord le contenu
+	methodsList.innerHTML = "";
+
+	// Pour chaque méthode, on crée un petit encadré (span)
+	methods.forEach(method => {
+	const badge = document.createElement('span');
+	badge.textContent = method;
+	badge.style.display = 'inline-block';
+	badge.style.padding = '4px 8px';
+	badge.style.margin = '4px';
+	badge.style.border = '1px solid #888';
+	badge.style.borderRadius = '8px';
+	badge.style.backgroundColor = '#f4f4f4';
+	badge.style.fontWeight = 'bold';
+	badge.style.color = '#000';
+	badge.style.fontSize = '0.9rem';
+	badge.style.fontFamily = 'monospace';
+
+	methodsList.appendChild(badge);
+	});
+
 	
 	// Récupère les éléments
 	const chatButton = document.querySelector<HTMLButtonElement>('.chatbot')!

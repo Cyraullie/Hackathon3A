@@ -65,5 +65,13 @@ export function createPromptBox(
   const parent = document.getElementById(parentId);
   if (parent) parent.appendChild(container);
   else document.body.appendChild(container);
+
+
+	input.addEventListener('keydown', (e) => {
+	if (e.key === 'Enter') {
+		e.preventDefault(); // empêche un éventuel saut de ligne
+		sendBtn.click(); // simule un clic sur le bouton
+	}
+});
 }
 
