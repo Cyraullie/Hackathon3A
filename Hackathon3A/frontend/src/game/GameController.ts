@@ -1,12 +1,15 @@
 import { Player } from "./Player";
 import { winAnimation, failAnimation } from "../core/Animations";
 import { MapBuilder } from "./MapBuilder";
+import { loopCircle } from "../core/Animations";
+import { Color3 } from "@babylonjs/core";
 
 export class GameController {
   player: Player;
   map: (string | number)[][];
   scene;
   levelIndex = 0;
+  loopProgress = new Map<string, number>(); // stocke combien de boucles chaque cube B a
 
   constructor(scene, map, player) {
     this.scene = scene;
@@ -30,8 +33,47 @@ export class GameController {
     ) {
       this.player.moveTo(newX, newZ);
 
-      if (this.map[newZ][newX] === "D") {
-        console.log("🎉 Victoire !");
+      const cell = this.map[newZ][newX];
+
+      // Bloc de boucle "B"
+      if (cell === "B") {
+        const mesh = this.scene.getMeshByName(`loop-${newX}-${newZ}`);
+        if (mesh) {
+          let count = this.loopProgress.get(mesh.name) || 0;
+          count++;
+          this.loopProgress.set(mesh.name, count);
+
+          // Update couleur / texte
+          const plane = this.scene.getMeshByName(`num-${newX}-${newZ}`);
+          if (plane && plane.material) {
+            plane.material.emissiveColor = new Color3(1, 1, 1);
+          }
+
+          console.log(`🔁 Boucle ${count}/3 sur ${mesh.name}`);
+
+          // si on a fait 3 tours
+          if (count >= 3) {
+            mesh.material.diffuseColor = new Color3(0.25, 0.25, 0.25); // devient gris
+            console.log(`✅ Bloc ${mesh.name} neutralisé`);
+          }
+        }
+        return;
+      }
+
+      // Arrivée
+      if (cell === "D") {
+        // vérifie si tous les blocs B sont neutralisés
+        const unvalidated = MapBuilder.loopBlocks.filter(
+          b => (b.material as any).diffuseColor.equals(new Color3(0.6, 0.2, 0.8))
+        );
+
+        if (unvalidated.length > 0) {
+          console.log("🚫 Tous les blocs B ne sont pas encore terminés !");
+          failAnimation(this.scene, this.player.mesh);
+          return;
+        }
+
+        console.log("🎉 Niveau terminé !");
         await winAnimation(this.scene, this.player.mesh);
         this.loadNextLevel();
       }
@@ -68,9 +110,10 @@ export class GameController {
       this.player.mesh.position.x = startX;
       this.player.mesh.position.z = startZ;
       this.player.pos = { x: startX, z: startZ };
-      this.player.mesh.material.alpha = 1; // réaffiche la balle
+      this.player.mesh.material.alpha = 1;
 
     } catch (err) {
+      console.error("Erreur chargement niveau :", err);
     }
   }
 }
