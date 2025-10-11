@@ -15,12 +15,14 @@ export async function run() {
 			<div id="game">
 				game
 			</div>
-			<div id="methods_used">
-				methods used
+			<div id="left_part">
+				<div id="methods_used">
+					methods used
+				</div>
+				<div id="prompt">
+					prompt
+				</div>
 			</div>
-		</div>
-		<div id="prompt">
-			prompt
 		</div>
 	</div>
 	`
