@@ -1,0 +1,2 @@
+recuperer les datas de maps dans /public
+envoyer a babylon le tableau 2d 

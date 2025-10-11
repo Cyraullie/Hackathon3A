@@ -1,9 +1,15 @@
+
+
+require("dotenv").config();
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const app = express();
 const routes= require('./routes/routes')
 const PORT = 3000;
+const port = process.env.PORT || 3000;
 const cors = require('cors');
+const aiRoutes = require("./routes/ai");
+
 app.use(cors()); // allow all origins (OK for dev)
 // Middleware to parse JSON
 app.use(express.json()); 
@@ -48,7 +54,14 @@ app.get('/connexion', (req, res) => {
   });
 });
 
+app.use("/api/ai", aiRoutes);
 
-// Start server
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.get("/", (req, res) => {
+  res.send("Hackathon3A backend is running ");
+});
+
+app.listen(port, () => {
+  console.log(`Server listening on http://localhost:${port}`);
+});
+
 
