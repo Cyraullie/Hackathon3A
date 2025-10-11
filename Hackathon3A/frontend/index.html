@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   	<link rel="stylesheet" href="./src/style.css">
+  	<link rel="stylesheet" href="./src/windows.css">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hackathon team 3A</title>
@@ -12,20 +13,74 @@
     <div id="app"></div>
     <script type="module" src="/src/start.ts"></script>
       <form>
-    <input type="text" id="input"/>
+  
       <button id="get">Start</button>
-      <button id="post">Post</button>
+     
 
     </form>
 	
     <div id="output"></div>
+    <div class="overlay" id="popupOverlay">
+    <div class="popup">
+      <div class="popup-header">
+        <span>Leaderboard</span>
+        <button id="closePopup">&times;</button>
+      </div>
+      <div style="margin-bottom: 10px;">
+                
+                <input type="text" id="input"/>
+              <button id="post">Post</button>
+              </div>
+      <div class="popup-content" id="popupContent">
+      
+      </div>
+    </div>
+  </div>
     <script>
-      const url="http://localhost:3000"
-      const getBtn=document.getElementById('get')
-      const postBtn=document.getElementById('post')
-      const input=document.getElementById('input')
-      const output=document.getElementById('output')
-       postBtn.addEventListener('click', async (e) => {
+        const url="http://localhost:3000"
+        const getBtn=document.getElementById('get')
+        const postBtn=document.getElementById('post')
+        const input=document.getElementById('input')
+        const output=document.getElementById('output')
+        const popupOverlay = document.getElementById("popupOverlay");
+        const popupContent = document.getElementById("popupContent");
+        const closePopup = document.getElementById("closePopup");
+        closePopup.addEventListener("click", () => {
+        popupOverlay.style.display = "none";
+      });
+
+      
+
+      // 🟢 GET button → Fetch and display all users
+      getBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        try {
+          const res = await fetch(url +'/connexion', {
+            
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) {
+          popupContent.innerHTML = "<p>No users found.</p>";
+        } else {
+          // Sort descending by score
+          data.sort((a, b) => b.score - a.score);
+            popupContent.innerHTML = `
+              
+              <h3>Leaderboard</h3>
+              ${data
+                .map((u) => `<div>${u.id}. ${u.name} — ${u.score}</div>`)
+                .join("")}
+            `;
+
+            popupOverlay.style.display = "flex";
+
+          
+        popupOverlay.style.display = "flex";
+         postBtn.addEventListener('click', async (e) => {
         e.preventDefault();
 
         const name = input.value.trim();
@@ -52,32 +107,14 @@
           alert('❌ Network or server error');
         }
       });
-
-      // 🟢 GET button → Fetch and display all users
-      getBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-
-        try {
-          const res = await fetch(url +'/connexion', {
-            
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          });
-
-          const data = await res.json();
-          if (!Array.isArray(data)) {
-            output.innerHTML = `<p>No users found.</p>`;
-            return;
-          }
-
-          output.innerHTML = `
-            <h3>All Users</h3>
-            ${data.map(u => `<div>${u.id}. ${u.name} — ${u.score}</div>`).join('')}
-          `;
-        } catch (err) {
-          console.error(err);
-          output.innerHTML = '<p>❌ Failed to load users</p>';
         }
+
+       
+      } catch (err) {
+        console.error(err);
+        popupContent.innerHTML = "<p>❌ Failed to load users</p>";
+        popupOverlay.style.display = "flex";
+      }
       });
     </script>
   </body>

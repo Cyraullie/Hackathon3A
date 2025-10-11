@@ -48,7 +48,7 @@ app.post('/info', (req, res) => {
 
 // GET endpoint to list all users
 app.get('/connexion', (req, res) => {
- db.all('SELECT * FROM users ORDER BY score DESC', (err, rows) => {
+ db.all('SELECT * FROM users ORDER BY score DESC LIMIT 10', (err, rows) => {
   if (err) return res.status(500).json({ error: err.message });
   res.json(rows);
 });
