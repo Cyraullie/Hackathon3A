@@ -1,7 +1,7 @@
-
+//TODO sysytem de niveau pour permettre les differentes methods/maps/
 import { setupStartGame } from './start_game.ts'
 const module = await import('./main_page.ts')
-module.run();
+module.run(1);
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
 

@@ -1,42 +1,39 @@
-export async function getMapFileData(level: number): Promise<{ methods: string[]; map2D: string[][] }> {
-    type Map2D = string[][];
+export async function getMapFileData(level: number): Promise<{
+  clientMethods: string[];
+  serverMethods: string[];
+}> {
+  const fileUrl = `method${level}.txt`;
 
-    // Génère le nom du fichier selon le level
-    const fileUrl = `map${level}.txt`;
+  console.log(fileUrl);
+  try {
+    const response = await fetch(fileUrl);
+    if (!response.ok) throw new Error(`Impossible de lire le fichier : ${response.statusText}`);
 
-    try {
-        const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error(`Impossible de lire le fichier : ${response.statusText}`);
+    const text = await response.text();
+	console.log(text);
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
 
-        const text: string = await response.text();
-        const lines: string[] = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    let clientMethods: string[] = [];
+    let serverMethods: string[] = [];
+    let section: 'client' | 'server' | null = null;
 
-        let methods: string[] = [];
-        let map: string[] = [];
-        let section: 'methods' | 'map' | null = null;
+    for (const line of lines) {
+      if (line.startsWith('client:')) {
+        section = 'client';
+        continue;
+      } else if (line.startsWith('server:')) {
+        section = 'server';
+        continue;
+      }
 
-        lines.forEach(line => {
-            if (line.startsWith('methods:')) {
-                section = 'methods';
-                const rest = line.slice('methods:'.length).trim();
-                if (rest.length) methods = rest.split(',').map(s => s.trim());
-            } else if (line.startsWith('map:')) {
-                section = 'map';
-            } else {
-                if (section === 'methods') {
-                    methods.push(line);
-                } else if (section === 'map') {
-                    map.push(line);
-                }
-            }
-        });
-
-        const map2D: Map2D = map.map(row => row.split(''));
-
-        return { methods, map2D };
-
-    } catch (err) {
-        console.error(err);
-        return { methods: [], map2D: [] };
+      if (section === 'client') clientMethods.push(line);
+      else if (section === 'server') serverMethods.push(line);
     }
+
+    return { clientMethods, serverMethods };
+
+  } catch (err) {
+    console.error("❌ Erreur lors de la lecture du fichier :", err);
+    return { clientMethods: [], serverMethods: [] };
+  }
 }

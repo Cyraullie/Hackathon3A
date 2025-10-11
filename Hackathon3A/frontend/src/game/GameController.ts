@@ -17,11 +17,11 @@ export class GameController {
     this.player = player;
   }
 
-  async execute(command: string) {
+  async execute(command: string): Promise<"success" | "fail" | "continue"> {
     const { x, z } = this.player.pos;
     let newX = x, newZ = z;
-	if (command === "MOVE_UP") newZ += 1;
 
+	if (command === "MOVE_UP") newZ += 1;
 	if (command === "MOVE_DOWN") newZ -= 1;
     if (command === "ONE_MOVE_UP") newZ += 1;
     if (command === "ONE_MOVE_DOWN") newZ -= 1;
@@ -34,7 +34,6 @@ export class GameController {
       this.map[newZ][newX] !== 0 && this.map[newZ][newX] !== "0"
     ) {
       this.player.moveTo(newX, newZ);
-
       const cell = this.map[newZ][newX];
 
       if (cell === "B") {
@@ -56,7 +55,7 @@ export class GameController {
             console.log(`✅ Bloc ${mesh.name} neutralisé`);
           }
         }
-        return;
+        return "continue";
       }
 
       if (cell === "D") {
@@ -67,15 +66,17 @@ export class GameController {
         if (unvalidated.length > 0) {
           console.log(" Tous les blocs B ne sont pas encore terminés !");
           failAnimation(this.scene, this.player.mesh);
-          return;
+          return "fail";
         }
 
         console.log(" Niveau terminé !");
         await winAnimation(this.scene, this.player.mesh);
-        this.loadNextLevel();
+		return "success";
+        //this.loadNextLevel();
       }
     } else {
-      failAnimation(this.scene, this.player.mesh);
+		failAnimation(this.scene, this.player.mesh);
+		return "fail";
     }
   }
 

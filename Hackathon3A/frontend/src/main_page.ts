@@ -9,9 +9,9 @@ import { MapBuilder } from "./game/MapBuilder";
 import { GameController } from "./game/GameController";
 import { createPromptBox } from "./ui/PromptBox";
 
-async function main() {
+async function main(level: number) {
 	const { scene } = createScene("renderCanvas");
-	const map = await loadMap("/maps/maps2.txt");
+	const map = await loadMap("/maps/maps" + level + ".txt");
 
 	const builder = new MapBuilder(scene, map);
 	builder.build();
@@ -25,101 +25,127 @@ async function main() {
 
 	const player = new Player(scene, startX, startZ);
 	const controller = new GameController(scene, map, player);
+	const { serverMethods } = await getMapFileData(level);
+			
+	console.log("serverMethods :", serverMethods);
 
 	createPromptBox(async (prompt) => {
 		try {
-		const res = await fetch("http://localhost:3000/api/ai/prompt", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ prompt }),
-		});
-		const data = await res.json();
+			const res = await fetch("http://localhost:3000/api/ai/prompt", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ prompt, serverMethods }),
+			});
+			const data = await res.json();
 
-		const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
+			const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
 
-		// Récupère ou crée le conteneur pour le code (entre les {})
-		let codeContainer = methodsUsedDiv.querySelector('.code-content');
-		if (!codeContainer) {
-			codeContainer = document.createElement('div');
-			codeContainer.classList.add('code-content');
-			codeContainer.style.marginLeft = '20px';
-			methodsUsedDiv.insertBefore(codeContainer, methodsUsedDiv.querySelector('p:last-child'));
+			// Récupère ou crée le conteneur pour le code (entre les {})
+			let codeContainer = methodsUsedDiv.querySelector('.code-content');
+			if (!codeContainer) {
+				codeContainer = document.createElement('div');
+				codeContainer.classList.add('code-content');
+				codeContainer.style.marginLeft = '20px';
+				methodsUsedDiv.insertBefore(codeContainer, methodsUsedDiv.querySelector('p:last-child'));
+			}
+
+			// Supprime tous les messages temporaires (erreurs rouges) avant d’ajouter le nouveau
+			const oldErrors = methodsUsedDiv.querySelectorAll('.temp-error');
+			oldErrors.forEach(e => e.remove());
+
+			if (data.command) {
+				console.log("🧩 Commande reçue :", data.command);
+
+			const commands = data.command.split(",").map(c => c.trim());
+			
+  			
+			const validCommands = serverMethods;
+
+			let hasValid = false;
+
+			for (const cmd of commands) {
+				if (validCommands.includes(cmd)) {
+					hasValid = true;
+
+					// Ajoute la commande de manière persistante
+					const cmdElement = document.createElement('div');
+					cmdElement.textContent = cmd + "();";
+					cmdElement.style.fontFamily = 'monospace';
+					cmdElement.style.paddingLeft = '10px';
+					cmdElement.style.color = '#00c853';
+					codeContainer.appendChild(cmdElement);
+
+					let result = await controller.execute(cmd);
+										
+					if (result === "success") {
+						console.log("🎉 Le joueur a fini le niveau !");
+						const winMsg = document.createElement('div');
+						winMsg.textContent = `🎉 Niveau ${level} réussi ! Passage au niveau ${level + 1}...`;
+						winMsg.style.color = 'gold';
+						winMsg.style.fontWeight = 'bold';
+						winMsg.style.marginTop = '10px';
+						codeContainer.appendChild(winMsg);
+
+						await new Promise(r => setTimeout(r, 1000)); // petite pause
+
+						// Nettoie la scène et recharge la suivante
+						document.querySelector<HTMLDivElement>('#app')!.innerHTML = "";
+						const module = await import('./main_page.ts');
+						module.run(level + 1);
+						return; // On sort pour éviter d’exécuter la suite
+					} else if (result === "fail") {
+					console.log("💥 Le joueur a échoué !");
+					} else {
+					console.log("➡️ Le jeu continue...");
+					}
+					await new Promise(r => setTimeout(r, 400));
+				} else {
+					// Affiche temporairement les textes non-valides en rouge
+					const tempError = document.createElement('div');
+					tempError.textContent = cmd;
+					tempError.classList.add('temp-error');
+					tempError.style.color = 'red';
+					tempError.style.fontWeight = 'bold';
+					tempError.style.marginTop = '5px';
+					tempError.style.marginLeft = '20px';
+					methodsUsedDiv.insertBefore(tempError, methodsUsedDiv.querySelector('p:last-child'));
+				}
+			}
+
+		} else {
+			// Aucun contenu → message temporaire
+			const errorMsg = document.createElement('div');
+			errorMsg.textContent = "⚠ Aucune commande valide reçue";
+			errorMsg.classList.add('temp-error');
+			errorMsg.style.color = 'red';
+			errorMsg.style.fontWeight = 'bold';
+			errorMsg.style.marginTop = '5px';
+			errorMsg.style.marginLeft = '20px';
+			methodsUsedDiv.insertBefore(errorMsg, methodsUsedDiv.querySelector('p:last-child'));
 		}
 
-		// Supprime tous les messages temporaires (erreurs rouges) avant d’ajouter le nouveau
+    } catch (err) {
+		console.error("Erreur de communication avec le backend :", err);
+
+		const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
 		const oldErrors = methodsUsedDiv.querySelectorAll('.temp-error');
 		oldErrors.forEach(e => e.remove());
 
-		if (data.command) {
-        console.log("🧩 Commande reçue :", data.command);
-
-        const commands = data.command.split(",").map(c => c.trim());
-        const validCommands = ["MOVE_UP", "MOVE_DOWN", "MOVE_LEFT", "MOVE_RIGHT"];
-
-        let hasValid = false;
-
-        for (const cmd of commands) {
-          if (validCommands.includes(cmd)) {
-            hasValid = true;
-
-			// Ajoute la commande de manière persistante
-            const cmdElement = document.createElement('div');
-            cmdElement.textContent = cmd + "();";
-            cmdElement.style.fontFamily = 'monospace';
-            cmdElement.style.paddingLeft = '10px';
-            cmdElement.style.color = '#00c853';
-            codeContainer.appendChild(cmdElement);
-
-            await controller.execute(cmd);
-            await new Promise(r => setTimeout(r, 400));
-          } else {
-            // Affiche temporairement les textes non-valides en rouge
-            const tempError = document.createElement('div');
-            tempError.textContent = cmd;
-            tempError.classList.add('temp-error');
-            tempError.style.color = 'red';
-            tempError.style.fontWeight = 'bold';
-            tempError.style.marginTop = '5px';
-            tempError.style.marginLeft = '20px';
-            methodsUsedDiv.insertBefore(tempError, methodsUsedDiv.querySelector('p:last-child'));
-          }
-        }
-
-      } else {
-        // Aucun contenu → message temporaire
-        const errorMsg = document.createElement('div');
-        errorMsg.textContent = "⚠ Aucune commande valide reçue";
-        errorMsg.classList.add('temp-error');
-        errorMsg.style.color = 'red';
-        errorMsg.style.fontWeight = 'bold';
-        errorMsg.style.marginTop = '5px';
-        errorMsg.style.marginLeft = '20px';
-        methodsUsedDiv.insertBefore(errorMsg, methodsUsedDiv.querySelector('p:last-child'));
-      }
-
-    } catch (err) {
-      console.error("Erreur de communication avec le backend :", err);
-
-      const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
-      const oldErrors = methodsUsedDiv.querySelectorAll('.temp-error');
-      oldErrors.forEach(e => e.remove());
-
-      const errorMsg = document.createElement('div');
-      errorMsg.textContent = "❌ Erreur de communication avec le backend";
-      errorMsg.classList.add('temp-error');
-      errorMsg.style.color = 'red';
-      errorMsg.style.fontWeight = 'bold';
-      errorMsg.style.marginTop = '5px';
-      errorMsg.style.marginLeft = '20px';
-      methodsUsedDiv.insertBefore(errorMsg, methodsUsedDiv.querySelector('p:last-child'));
-    }
-  });
+		const errorMsg = document.createElement('div');
+		errorMsg.textContent = "❌ Erreur de communication avec le backend";
+		errorMsg.classList.add('temp-error');
+		errorMsg.style.color = 'red';
+		errorMsg.style.fontWeight = 'bold';
+		errorMsg.style.marginTop = '5px';
+		errorMsg.style.marginLeft = '20px';
+		methodsUsedDiv.insertBefore(errorMsg, methodsUsedDiv.querySelector('p:last-child'));
+	}
+	});
 }
 
-export async function run() {
-  const { methods, map2D } = await getMapFileData(1);
-  console.log("methods :", methods);
-  console.log("map :", map2D);
+export async function run(level: number) {
+  const { clientMethods  } = await getMapFileData(level);
+  console.log("clientMethods :", clientMethods);
 
   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div id="game_page">
@@ -135,8 +161,9 @@ export async function run() {
       </div>
       <div id="left_part">
         <div id="methods_used">
+			<h2 style="text-align: center; width: 80%;">niveau ${level}</h2>
 			<p>{</p>
-			<p>//le code qui va s'executer va apparaitre ici</p>
+			<p style="color: lightblue;">//le code qui va s'executer va apparaitre ici</p>
 			<p> }</p>
         </div>
         <div id="prompt">
@@ -157,14 +184,14 @@ export async function run() {
   </div>
   `
 
-	main();
+	main(level);
 	const methodsList = document.querySelector<HTMLDivElement>('#methods_list')!;
 
 	// On vide d'abord le contenu
 	methodsList.innerHTML = "";
 
 	// Pour chaque méthode, on crée un petit encadré (span)
-	methods.forEach(method => {
+	clientMethods.forEach(method => {
 		const badge = document.createElement('span');
 		badge.textContent = method;
 		badge.style.display = 'inline-block';

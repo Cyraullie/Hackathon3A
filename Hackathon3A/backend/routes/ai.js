@@ -4,14 +4,14 @@ const { sendPromptToAI } = require("../services/infomaniak");
 const { sendPromptToChat } = require("../services/chat");
 
 router.post("/prompt", async (req, res) => {
-  const { prompt } = req.body;
+  const { prompt, serverMethods } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ error: "Missing prompt" });
   }
 
   try {
-    const command = await sendPromptToAI(prompt);
+    const command = await sendPromptToAI(prompt, serverMethods);
     res.json({ command });
   } catch (err) {
     res.status(500).json({ error: err.message });
