@@ -266,6 +266,13 @@ export async function run(level: number) {
   const chatInput = document.querySelector<HTMLInputElement>('#chatInput')!
   const chatLog = document.querySelector<HTMLDivElement>('#chatLog')!
 
+	chatInput.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter') {
+			e.preventDefault(); // empêche un éventuel saut de ligne
+			sendBtn.click(); // simule un clic sur le bouton
+		}
+	});
+
  sendBtn.addEventListener('click', async (e) => {
   e.preventDefault();
   const prompt = chatInput.value.trim();

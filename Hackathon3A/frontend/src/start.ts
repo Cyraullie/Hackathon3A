@@ -1,7 +1,7 @@
-//TODO sysytem de niveau pour permettre les differentes methods/maps/
+//TODO ajouter une manière de perdre
 import { setupStartGame } from './start_game.ts'
-const module = await import('./main_page.ts')
-module.run(1);
+//const module = await import('./main_page.ts')
+//module.run(1);
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
 
@@ -11,5 +11,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     </div>
   </div>
 `
-
+//TODO add chargement 
+//TODO add chrono 20min? 
+//TODO add AI course for each theme 
 setupStartGame(document.querySelector<HTMLButtonElement>('#start')!)

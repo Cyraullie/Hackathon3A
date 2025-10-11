@@ -5,6 +5,6 @@ export function setupStartGame(element: HTMLButtonElement) {
     const module = await import('./main_page.ts')
     
     // Appel d'une fonction exportée depuis main_page.ts
-    module.run()
+    module.run(1)
   })
 }
