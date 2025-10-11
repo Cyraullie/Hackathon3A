@@ -9,7 +9,7 @@ export class GameController {
   map: (string | number)[][];
   scene;
   levelIndex = 0;
-  loopProgress = new Map<string, number>(); // stocke combien de boucles chaque cube B a
+  loopProgress = new Map<string, number>();
 
   constructor(scene, map, player) {
     this.scene = scene;
@@ -21,8 +21,8 @@ export class GameController {
     const { x, z } = this.player.pos;
     let newX = x, newZ = z;
 
-    if (command === "MOVE_UP") newZ -= 1;
-    if (command === "MOVE_DOWN") newZ += 1;
+    if (command === "MOVE_UP") newZ += 1;
+    if (command === "MOVE_DOWN") newZ -= 1;
     if (command === "MOVE_LEFT") newX -= 1;
     if (command === "MOVE_RIGHT") newX += 1;
 
@@ -35,7 +35,6 @@ export class GameController {
 
       const cell = this.map[newZ][newX];
 
-      // Bloc de boucle "B"
       if (cell === "B") {
         const mesh = this.scene.getMeshByName(`loop-${newX}-${newZ}`);
         if (mesh) {
@@ -43,7 +42,6 @@ export class GameController {
           count++;
           this.loopProgress.set(mesh.name, count);
 
-          // Update couleur / texte
           const plane = this.scene.getMeshByName(`num-${newX}-${newZ}`);
           if (plane && plane.material) {
             plane.material.emissiveColor = new Color3(1, 1, 1);
@@ -51,29 +49,26 @@ export class GameController {
 
           console.log(`🔁 Boucle ${count}/3 sur ${mesh.name}`);
 
-          // si on a fait 3 tours
           if (count >= 3) {
-            mesh.material.diffuseColor = new Color3(0.25, 0.25, 0.25); // devient gris
+            mesh.material.diffuseColor = new Color3(0.25, 0.25, 0.25);
             console.log(`✅ Bloc ${mesh.name} neutralisé`);
           }
         }
         return;
       }
 
-      // Arrivée
       if (cell === "D") {
-        // vérifie si tous les blocs B sont neutralisés
         const unvalidated = MapBuilder.loopBlocks.filter(
           b => (b.material as any).diffuseColor.equals(new Color3(0.6, 0.2, 0.8))
         );
 
         if (unvalidated.length > 0) {
-          console.log("🚫 Tous les blocs B ne sont pas encore terminés !");
+          console.log(" Tous les blocs B ne sont pas encore terminés !");
           failAnimation(this.scene, this.player.mesh);
           return;
         }
 
-        console.log("🎉 Niveau terminé !");
+        console.log(" Niveau terminé !");
         await winAnimation(this.scene, this.player.mesh);
         this.loadNextLevel();
       }

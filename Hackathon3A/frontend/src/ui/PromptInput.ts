@@ -1,4 +1,3 @@
-// src/ui/PromptInput.ts
 export function listenForPrompt(callback: (command: string) => void) {
   const input = document.createElement("input");
   input.placeholder = "Écris un prompt...";

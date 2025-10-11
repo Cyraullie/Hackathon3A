@@ -1,4 +1,3 @@
-// src/ui/PromptBox.ts
 export function createPromptBox(onSend: (text: string) => void) {
   const container = document.createElement("div");
   container.style.position = "fixed";
@@ -16,7 +15,7 @@ export function createPromptBox(onSend: (text: string) => void) {
   container.style.backdropFilter = "blur(8px)";
 
   const title = document.createElement("div");
-  title.innerText = "🧠 IA Prompt";
+  title.innerText = "IA Prompt";
   title.style.fontWeight = "bold";
   title.style.color = "#fff";
   title.style.marginBottom = "6px";
@@ -52,6 +51,7 @@ export function createPromptBox(onSend: (text: string) => void) {
   sendBtn.addEventListener("click", () => {
     const value = input.value.trim();
     if (value) {
+		console.log("ce que l'user a rentrer: ", value)
       onSend(value);
       input.value = "";
     }

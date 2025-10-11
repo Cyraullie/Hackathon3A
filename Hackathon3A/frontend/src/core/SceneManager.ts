@@ -1,4 +1,3 @@
-// src/core/SceneManager.ts
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3 } from "@babylonjs/core";
 
 export function createScene(canvasId: string) {

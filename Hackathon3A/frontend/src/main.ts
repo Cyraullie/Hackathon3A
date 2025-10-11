@@ -1,4 +1,3 @@
-// src/main.ts
 import { createScene } from "./core/SceneManager";
 import { loadMap } from "./core/MapLoader";
 import { Player } from "./game/Player";
@@ -31,13 +30,18 @@ async function main() {
         body: JSON.stringify({ prompt }),
       });
       const data = await res.json();
+	if (data.command) {
+  console.log("🧩 Commande reçue :", data.command);
 
-      if (data.command) {
-        console.log("🧩 Commande reçue :", data.command);
-        await controller.execute(data.command);
-      } else {
-        console.warn("⚠️ Aucune commande valide reçue :", data);
-      }
+  const commands = data.command.split(",").map(c => c.trim());
+
+  for (const cmd of commands) {
+    await controller.execute(cmd);
+    await new Promise(r => setTimeout(r, 400));
+  }
+} else {
+  console.warn("⚠ Aucune commande valide reçue :", data);
+}
     } catch (err) {
       console.error("Erreur de communication avec le backend :", err);
     }

@@ -1,4 +1,3 @@
-// src/game/MapBuilder.ts
 import {
   MeshBuilder,
   StandardMaterial,
@@ -32,7 +31,6 @@ export class MapBuilder {
   build() {
     MapBuilder.loopBlocks = [];
 
-    // 🎨 Materials
     const wallMat = new StandardMaterial("wallMat", this.scene);
     wallMat.diffuseColor = new Color3(0.25, 0.25, 0.25);
 
@@ -78,7 +76,6 @@ export class MapBuilder {
             block.edgesWidth = 1.5;
             block.edgesColor = new Color4(0.8, 0.5, 1, 1);
 
-            // 🧭 Texte 3D lié au bloc
             const text = new GUI.TextBlock();
             text.text = targetLoops.toString();
             text.color = "white";

@@ -1,4 +1,3 @@
-// src/core/MapLoader.ts
 export async function loadMap(path: string): Promise<(string | number)[][]> {
   const res = await fetch(path);
   const text = await res.text();

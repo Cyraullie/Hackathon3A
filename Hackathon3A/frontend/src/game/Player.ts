@@ -1,4 +1,3 @@
-// src/game/Player.ts
 import { MeshBuilder, StandardMaterial, Color3, Scene, Vector3 } from "@babylonjs/core";
 import { moveTo } from "../core/Animations";
 
@@ -14,12 +13,12 @@ export class Player {
 
     const sphere = MeshBuilder.CreateSphere("player", { diameter: this.sphereDiam }, scene);
     const mat = new StandardMaterial("playerMat", scene);
-    mat.diffuseColor = new Color3(1, 0.2, 0.2); // rouge plus vif
+    mat.diffuseColor = new Color3(1, 0.2, 0.2);
     sphere.material = mat;
 
     sphere.position = new Vector3(
       x * this.cubeSize,
-      this.cubeSize + this.sphereDiam /2, // flottement au-dessus du cube
+      this.cubeSize + this.sphereDiam /2,
       z * this.cubeSize
     );
 
