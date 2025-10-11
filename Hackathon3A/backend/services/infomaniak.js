@@ -1,83 +1,56 @@
-const axios = require("axios");
-
-function parseSimpleCommand(prompt) {
-  const text = prompt.toLowerCase();
-
-  if (/^avance\b/.test(text) || /tout droit/.test(text) || /en avant/.test(text)) {
-    const match = text.match(/(\d+)/);
-    const steps = match ? parseInt(match[1]) : 1;
-    return Array(steps).fill("MOVE_UP").join(",");
-  }
-
-  if (/recule/.test(text) || /en arrière/.test(text)) {
-    const match = text.match(/(\d+)/);
-    const steps = match ? parseInt(match[1]) : 1;
-    return Array(steps).fill("MOVE_DOWN").join(",");
-  }
-
-  if (/gauche/.test(text)) {
-    const match = text.match(/(\d+)/);
-    const steps = match ? parseInt(match[1]) : 1;
-    return Array(steps).fill("MOVE_LEFT").join(",");
-  }
-
-  if (/droite/.test(text)) {
-    const match = text.match(/(\d+)/);
-    const steps = match ? parseInt(match[1]) : 1;
-    return Array(steps).fill("MOVE_RIGHT").join(",");
-  }
-
-  return null;
-}
-
-async function sendPromptToAI(prompt) {
-  const direct = parseSimpleCommand(prompt);
-  if (direct) {
-    console.log("✅ Interprétation locale :", direct);
-    return direct;
-  }
-
-  // 🧠 2. Sinon, on demande à l’IA (cas complexes)
-  const PRODUCT_ID = process.env.PRODUCT_ID;
+export async function sendPromptToAI(prompt) {
+  const PRODUCT_ID = "105933";
   const API_TOKEN = process.env.INFOMANIAK_API_TOKEN;
+
   const BASE_URL = `https://api.infomaniak.com/1/ai/${PRODUCT_ID}/openai/chat/completions`;
 
-  try {
-    const response = await axios.post(
-      BASE_URL,
+  const payload = {
+    model: "llama3",
+    temperature: 0.2,
+    messages: [
       {
-        model: "DeepSeek-R1-distilled-qwen32B",
-        messages: [
-          {
-            role: "system",
-            content: `
+        role: "system",
+        content: `
 Tu contrôles une balle dans un labyrinthe vu du dessus (top-down).
-Réponds uniquement avec une ou plusieurs commandes parmi :
-MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT
-(selon ce que dit l'utilisateur en français).
-Ne réponds avec rien d'autre.
+Ton rôle est de traduire les instructions de l'utilisateur en commandes de déplacement.
+Réponds uniquement avec une suite de commandes séparées par des virgules :
+MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, ONE_MOVE_UP, ONE_MOVE_DOWN, JUMP, LOOP
+Ne réponds JAMAIS avec du texte explicatif ou des phrases.
+Exemples :
+Utilisateur : "avance de 3 cases" → MOVE_UP,MOVE_UP,MOVE_UP
+Utilisateur : "va à droite deux fois puis saute" → MOVE_RIGHT,MOVE_RIGHT,JUMP
+Utilisateur : "fais une boucle trois fois" → LOOP,LOOP,LOOP
 `
-          },
-          { role: "user", content: prompt }
-        ],
-        temperature: 0.3
       },
       {
-        headers: {
-          Authorization: `Bearer ${API_TOKEN}`,
-          "Content-Type": "application/json"
-        }
+        role: "user",
+        content: prompt
       }
-    );
+    ]
+  };
 
-    const raw = response.data?.choices?.[0]?.message?.content?.trim();
-    console.log("🤖 Réponse IA brute :", raw);
-    return raw || "MOVE_UP";
+  try {
+    const res = await fetch(BASE_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${API_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.result === "error") {
+      console.error("Erreur API :", JSON.stringify(data, null, 2));
+      throw new Error(data.error?.description || "Erreur API Infomaniak");
+    }
+
+    const raw = data?.choices?.[0]?.message?.content?.trim();
+    console.log("Réponse IA brute :", raw);
+    return raw || "";
   } catch (err) {
-    console.error("❌ Erreur API :", err.response?.data || err.message);
+    console.error("Erreur de communication avec Infomaniak :", err.message);
     throw new Error("Échec communication avec Infomaniak API");
   }
 }
-
-module.exports = { sendPromptToAI };
-
