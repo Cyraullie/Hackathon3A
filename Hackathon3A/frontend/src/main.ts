@@ -1,24 +1,52 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import { createScene } from "./core/SceneManager";
+import { loadMap } from "./core/MapLoader";
+import { Player } from "./game/Player";
+import { MapBuilder } from "./game/MapBuilder";
+import { GameController } from "./game/GameController";
+import { createPromptBox } from "./ui/PromptBox";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+async function main() {
+  const { scene } = createScene("renderCanvas");
+  const map = await loadMap("/maps/maps2.txt");
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+  const builder = new MapBuilder(scene, map);
+  builder.build();
+
+  let startX = 0, startZ = 0;
+  map.forEach((row, z) =>
+    row.forEach((cell, x) => {
+      if (cell === "P") { startX = x; startZ = z; }
+    })
+  );
+
+  const player = new Player(scene, startX, startZ);
+  const controller = new GameController(scene, map, player);
+
+  createPromptBox(async (prompt) => {
+    try {
+      const res = await fetch("http://localhost:3000/api/ai/prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+	if (data.command) {
+  console.log("🧩 Commande reçue :", data.command);
+
+  const commands = data.command.split(",").map(c => c.trim());
+
+  for (const cmd of commands) {
+    await controller.execute(cmd);
+    await new Promise(r => setTimeout(r, 400));
+  }
+} else {
+  console.warn("⚠ Aucune commande valide reçue :", data);
+}
+    } catch (err) {
+      console.error("Erreur de communication avec le backend :", err);
+    }
+  });
+}
+
+main();
+
