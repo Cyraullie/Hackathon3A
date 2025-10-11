@@ -54,13 +54,14 @@ h1 {
 #methods {
 	width: 100%;
 	text-align: initial;
+	flex: 0.3;
 }
 
 #methods_list {
 	color: #bcbcbc;
 	padding-left: 20px;
 	padding-right: 20px;
-	height: 24px;
+	height: 40px;
 }
 
 #center_part {
@@ -68,7 +69,7 @@ h1 {
   flex-direction: row;
   width: 100%;
   margin: 0;
-  flex: 8;
+  flex: 7;
 }
 
 #left_part {
@@ -121,7 +122,7 @@ h1 {
 
 .chatbot {
 	position: absolute;
-	top: 30px;    /* distance depuis le haut du conteneur */
+	top: 50px;    /* distance depuis le haut du conteneur */
 	right: 10px;  /* distance depuis la droite */
 	width: 60px;              /* largeur du bouton */
 	height: 60px;             /* même hauteur → cercle parfait */
