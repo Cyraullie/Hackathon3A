@@ -266,26 +266,63 @@ export async function run(level: number) {
   const chatInput = document.querySelector<HTMLInputElement>('#chatInput')!
   const chatLog = document.querySelector<HTMLDivElement>('#chatLog')!
 
-  sendBtn.addEventListener('click', async (e) => {
-    e.preventDefault()
-	console.log(chatInput.value);
-    const prompt = chatInput.value.trim()
-	console.log(prompt);
-    if (!prompt) return
+ sendBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
+  const prompt = chatInput.value.trim();
+  if (!prompt) return;
 
-    chatLog.innerHTML += `<div><strong>You:</strong> ${escapeHtml(prompt)}</div>`
-    chatInput.value = ''
+  // --- User message (right aligned)
+  const userMsg = document.createElement('div');
+  userMsg.style.textAlign = 'right';
+  userMsg.innerHTML = `
+    <div style="
+      display: inline-block;
+      background-color: #4f8cff;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 12px;
+      margin: 5px 0;
+      max-width: 70%;
+      word-wrap: break-word;
+      text-align: left;
+    ">
+      ${escapeHtml(prompt)}
+    </div>
+  `;
+  chatLog.appendChild(userMsg);
+  chatInput.value = '';
 
-    try {
-      const data = await sendPromptToBackend(prompt)
-      const aiText = data.command ?? JSON.stringify(data)
-      chatLog.innerHTML += `<div><strong>AI:</strong> ${escapeHtml(aiText)}</div>`
-      chatLog.scrollTop = chatLog.scrollHeight
-    } catch (err) {
-      chatLog.innerHTML += `<div style="color:crimson">Error sending prompt. See console.</div>`
-    }
-  })
+  try {
+    const data = await sendPromptToBackend(prompt);
+    const aiText = data.command ?? JSON.stringify(data);
 
+    // --- AI message (left aligned)
+    const aiMsg = document.createElement('div');
+    aiMsg.style.textAlign = 'left';
+    aiMsg.innerHTML = `
+      <div style="
+        display: inline-block;
+        background-color: #e5e5e5;
+        color: #000;
+        padding: 8px 12px;
+        border-radius: 12px;
+        margin: 5px 0;
+        max-width: 70%;
+        word-wrap: break-word;
+      ">
+        ${escapeHtml(aiText)}
+      </div>
+    `;
+    chatLog.appendChild(aiMsg);
+
+    chatLog.scrollTop = chatLog.scrollHeight;
+  } catch (err) {
+    const errorMsg = document.createElement('div');
+    errorMsg.style.color = 'crimson';
+    errorMsg.textContent = 'Error sending prompt. See console.';
+    chatLog.appendChild(errorMsg);
+  }
+});
   // small utility to avoid inserting raw HTML from AI/prompt
   function escapeHtml(s: string) {
     return s.replace(/[&<>"']/g, (c) => ({

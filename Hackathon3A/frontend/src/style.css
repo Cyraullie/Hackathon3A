@@ -130,7 +130,32 @@ h1 {
 	transition: transform 0.2s ease, background-color 0.3s;
 	z-index: 1000;            /* si tu veux qu’il passe au-dessus d’autres div */
 }
+.chat-message {
+  max-width: 75%;
+  padding: 10px 14px;
+  margin: 8px;
+  border-radius: 12px;
+  word-wrap: break-word;
+  font-size: 0.95rem;
+}
 
+/* 🧍 User messages — right-aligned */
+.chat-message.user {
+  background-color: #0078ff;
+  color: white;
+  margin-left: auto;
+  text-align: right;
+  border-bottom-right-radius: 4px;
+}
+
+/* 🤖 Bot messages — left-aligned */
+.chat-message.bot {
+  background-color: #e4e4e4;
+  color: #000;
+  margin-right: auto;
+  text-align: left;
+  border-bottom-left-radius: 4px;
+}
 .chatbot:hover {
 	background-color: #555;   /* effet au survol */
 	transform: scale(1.1);    /* petit zoom */
