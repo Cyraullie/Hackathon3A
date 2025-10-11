@@ -37,85 +37,95 @@
     </div>
   </div>
     <script>
-        const url="http://localhost:3000"
-        const getBtn=document.getElementById('get')
-        const postBtn=document.getElementById('post')
-        const input=document.getElementById('input')
-        const output=document.getElementById('output')
-        const popupOverlay = document.getElementById("popupOverlay");
-        const popupContent = document.getElementById("popupContent");
-        const closePopup = document.getElementById("closePopup");
-        
-        closePopup.addEventListener("click", () => {
-          console.log("close popup")
-          popupOverlay.style.display = "none";
-        });
+const url = "http://localhost:3000";
+const getBtn = document.getElementById("get");
+const postBtn = document.getElementById("post");
+const input = document.getElementById("input");
+const popupOverlay = document.getElementById("popupOverlay");
+const popupContent = document.getElementById("popupContent");
+const closePopup = document.getElementById("closePopup");
 
-      
+// 🔴 Close popup
+closePopup.addEventListener("click", () => {
+  popupOverlay.style.display = "none";
+});
 
-      // 🟢 GET button → Fetch and display all users
-      getBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
+// 🟢 Load leaderboard
+async function loadLeaderboard() {
+  popupOverlay.style.display = "flex";
+  popupContent.innerHTML = "<p>Loading leaderboard...</p>";
 
-        try {
-          const res = await fetch(url +'/connexion', {
-            
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          });
+  try {
+    const res = await fetch(url + "/connexion", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
 
-          const data = await res.json();
-            if (!Array.isArray(data) || data.length === 0) {
-          popupContent.innerHTML = "<p>No users found.</p>";
-        } else {
-          // Sort descending by score
-          data.sort((a, b) => b.score - a.score);
-            popupContent.innerHTML = `
-              ${data
-                .map((u) => `<div>${u.name} — <b>${u.score}</b></div>`)
-                .join("")}
-            `;
+    if (!res.ok) throw new Error("Server returned " + res.status);
 
-            popupOverlay.style.display = "flex";
+    const data = await res.json();
 
-          
-        popupOverlay.style.display = "flex";
-         postBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
+    if (!Array.isArray(data) || data.length === 0) {
+      popupContent.innerHTML = `
+        <p style="text-align:center; color:gray;">
+          🕹️ No users found yet.<br>Be the first to post a score!
+        </p>
+      `;
+    } else {
+      data.sort((a, b) => b.score - a.score);
+      popupContent.innerHTML = `
+        ${data
+          .map((u, i) => `<div>${i + 1}. <b>${u.name}</b> — ${u.score}</div>`)
+          .join("")}
+      `;
+    }
+  } catch (err) {
+    console.error(err);
+    popupContent.innerHTML = `
+      <p style="color:red; text-align:center;">
+        ⚠️ Could not load leaderboard.<br>
+        Make sure the backend is running.
+      </p>
+    `;
+  }
+}
 
-        const name = input.value.trim();
-        if (!name) return alert('Please enter a name');
+// 🔘 GET button
+getBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  loadLeaderboard();
+});
 
-        const score = Math.floor(Math.random() * 100); // example score
+// 🟡 POST button
+postBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
 
-        try {
-          const res = await fetch(url +'/info', {
-            
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, score }),
-          });
+  const name = input.value.trim();
+  if (!name) return alert("Please enter a name");
 
-          const data = await res.json();
-          if (res.ok) {
-            alert(`✅ Saved ${data.name} with score ${data.score}`);
-          } else {
-            alert('❌ Error: ' + (data.error || 'Unknown error'));
-          }
-        } catch (err) {
-          console.error(err);
-          alert('❌ Network or server error');
-        }
-      });
-        }
+  const score = Math.floor(Math.random() * 100);
 
-       
-      } catch (err) {
-        console.error(err);
-        popupContent.innerHTML = "<p>❌ Failed to load users</p>";
-        popupOverlay.style.display = "flex";
-      }
-      });
-    </script>
+  try {
+    const res = await fetch(url + "/info", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, score }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert(`✅ Saved ${data.name} with score ${data.score}`);
+      input.value = "";
+      loadLeaderboard(); // Refresh leaderboard after saving
+    } else {
+      alert("❌ Error: " + (data.error || "Unknown error"));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Failed to send data to server");
+  }
+});
+</script>
   </body>
 </html>

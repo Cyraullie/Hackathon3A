@@ -11,7 +11,6 @@ export async function sendPromptToChat(prompt) {
       {
         role: "system",
         content: `
-Tu es un veterant en programmation, il faut que tu aide les juniors developpers de 12 a 16 ans, a ameliorer, corriger le code en donnant de l'aide.Quand tu aides,utilise des phrases simple comprendre
 `
            },
       {
