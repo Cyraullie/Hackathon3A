@@ -56,6 +56,9 @@ h1 {
 	text-align: initial;
 	flex: 0.3;
 	border-bottom: 1px #888 solid;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
 }
 
 #methods_list {
