@@ -213,7 +213,7 @@ export async function run(level: number) {
     <div id="methods">
       <a id="methods_list">list of methods enable</a>
 	  <div style="text-align:center; margin-bottom: auto; margin-top: auto; margin-right: 20px;">
-				<button id="resetGame" style="
+				<button class="resetGame" style="
 					padding: 6px 12px;
 					background-color: #ff5252;
 					color: white;
@@ -273,7 +273,7 @@ export async function run(level: number) {
 			
 			</div>
 			<div style="margin-top: 10px; text-align:center;">
-				<button id="resetGame" style="
+				<button class="resetGame" style="
 					padding: 6px 12px;
 					background-color: #ff5252;
 					color: white;
@@ -325,16 +325,20 @@ export async function run(level: number) {
 	const postBtn = document.getElementById("post");
 	const input = document.getElementById("input");
 
-	const resetBtn = document.getElementById("resetGame")!;
-	resetBtn.addEventListener("click", () => {
-		// Cache le popup
-		popupOverlay.style.display = "none";
+	const resetBtns = document.getElementsByClassName("resetGame")!;
+	Array.from(resetBtns).forEach((btn) => {
+		btn.addEventListener("click", () => {
+			// Cache le popup
+			const popupOverlay = document.getElementById("popupOverlay")!;
+			popupOverlay.style.display = "none";
 
-		// Réinitialise le contenu du jeu
-		document.querySelector<HTMLDivElement>('#app')!.innerHTML = "";
+			// Réinitialise le contenu du jeu
+			const app = document.getElementById("app")!;
+			app.innerHTML = "";
 
-		// Recommence le jeu depuis le niveau 1
-		run(1);
+			// Recommence le jeu depuis le niveau 1
+			run(1);
+		});
 	});
 
 

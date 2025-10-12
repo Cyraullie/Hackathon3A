@@ -47,6 +47,16 @@
   overflow: hidden;
 }
 
+#post:disabled {
+  background-color: #aaa;       /* couleur grisée */
+  cursor: default;          /* curseur interdit */
+  color: #666;                  /* texte plus clair */
+}
+
+#post:disabled:hover {
+  background-color: #aaa;       /* reste grisé */
+}
+
 /* Popup title bar */
 .popup-header {
   background-color: black;
