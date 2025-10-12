@@ -459,6 +459,8 @@ export async function run(level: number) {
 		console.error(err);
 		alert("❌ Failed to send data to server");
 	}
+	 postBtn.disabled = true;
+ input.disabled = true;
 	});
 
 
@@ -469,13 +471,15 @@ export async function run(level: number) {
 }
 
 async function loadLeaderboard() {
+	
 	const popupOverlay = document.getElementById("popupOverlay");
 	const popupContent = document.getElementById("popupContent");
 	const closePopup = document.getElementById("closePopup");
 	const url = "http://localhost:3000";
 	const postBtn = document.getElementById("post");
 	const input = document.getElementById("input");
-
+ postBtn.disabled = false;
+ input.disabled = false;
 	popupOverlay.style.display = "flex";
 	popupContent.innerHTML = "<p>Loading leaderboard...</p>";
 
@@ -512,4 +516,6 @@ async function loadLeaderboard() {
 		</p>
 		`;
 	}
+	
 	}
+	
