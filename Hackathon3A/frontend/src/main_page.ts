@@ -212,6 +212,17 @@ export async function run(level: number) {
   <div id="game_page">
     <div id="methods">
       <a id="methods_list">list of methods enable</a>
+	  <div style="text-align:center; margin-bottom: auto; margin-top: auto; margin-right: 20px;">
+				<button id="resetGame" style="
+					padding: 6px 12px;
+					background-color: #ff5252;
+					color: white;
+					border: none;
+					border-radius: 8px;
+					cursor: pointer;
+					font-weight: bold;
+				">Reset Game</button>
+			</div>
     </div>
     <div id="center_part">
       <button class="chatbot" type="button">
@@ -261,6 +272,17 @@ export async function run(level: number) {
 			<div class="popup-content" id="popupContent">
 			
 			</div>
+			<div style="margin-top: 10px; text-align:center;">
+				<button id="resetGame" style="
+					padding: 6px 12px;
+					background-color: #ff5252;
+					color: white;
+					border: none;
+					border-radius: 8px;
+					cursor: pointer;
+					font-weight: bold;
+				">Reset Game</button>
+			</div>
 		</div>
 	</div>
   </div>
@@ -296,6 +318,25 @@ export async function run(level: number) {
 	const chatIcon = document.querySelector<HTMLImageElement>('#chat_icon')!
 	const leftPart = document.querySelector<HTMLDivElement>('#left_part')!
 	const chatDiv = document.querySelector<HTMLDivElement>('#chat')!
+	const popupOverlay = document.getElementById("popupOverlay");
+	const popupContent = document.getElementById("popupContent");
+	const closePopup = document.getElementById("closePopup");
+	const url = "http://localhost:3000";
+	const postBtn = document.getElementById("post");
+	const input = document.getElementById("input");
+
+	const resetBtn = document.getElementById("resetGame")!;
+	resetBtn.addEventListener("click", () => {
+		// Cache le popup
+		popupOverlay.style.display = "none";
+
+		// Réinitialise le contenu du jeu
+		document.querySelector<HTMLDivElement>('#app')!.innerHTML = "";
+
+		// Recommence le jeu depuis le niveau 1
+		run(1);
+	});
+
 
   // Initially hidden
   chatDiv.style.display = 'none';
@@ -423,12 +464,7 @@ export async function run(level: number) {
     } as any)[c]);
   }
 
-	const popupOverlay = document.getElementById("popupOverlay");
-	const popupContent = document.getElementById("popupContent");
-	const closePopup = document.getElementById("closePopup");
-	const url = "http://localhost:3000";
-	const postBtn = document.getElementById("post");
-	const input = document.getElementById("input");
+	
 
 	// 🟡 POST button
 	postBtn.addEventListener("click", async (e) => {
