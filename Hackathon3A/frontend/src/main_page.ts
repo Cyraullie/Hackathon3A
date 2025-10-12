@@ -445,7 +445,7 @@ export async function run(level: number) {
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ name, score }),
 		});
-
+		
 		const data = await res.json();
 
 		if (res.ok) {
