@@ -9,6 +9,31 @@ import { MapBuilder } from "./game/MapBuilder";
 import { GameController } from "./game/GameController";
 import { createPromptBox } from "./ui/PromptBox";
 
+const max_point: number = 10;
+var actual_point: number = 10;
+var first: boolean;
+
+function save_point() {
+	// Récupère la valeur existante dans le localStorage (ou 0 si elle n'existe pas)
+	const storedPoint = localStorage.getItem("point");
+	const previousPoints = storedPoint ? Number(storedPoint) : 0;
+
+	// Ajoute les nouveaux points
+	const totalPoints = previousPoints + actual_point;
+
+	// Sauvegarde la nouvelle valeur dans le localStorage
+	localStorage.setItem("point", totalPoints.toString());
+
+	console.log(`✅ Points sauvegardés : ${totalPoints}`);
+}
+
+function update_points_display() {
+  const el = document.querySelector<HTMLSpanElement>('#points_display');
+  if (el) {
+    el.textContent = `(${actual_point}/${max_point})`;
+  }
+}
+
 async function main(level: number) {
 	const { scene } = createScene("renderCanvas");
 	const map = await loadMap("/maps/maps" + level + ".txt");
@@ -62,7 +87,17 @@ async function main(level: number) {
 			const validCommands = serverMethods;
 
 			let hasValid = false;
-
+			if (first)
+				first = false;
+			else
+			{
+				if (actual_point > 0)
+				{
+					actual_point--;
+					update_points_display();
+				}
+			}
+			console.log(actual_point);
 			for (const cmd of commands) {
 				if (validCommands.includes(cmd)) {
 					hasValid = true;
@@ -78,21 +113,45 @@ async function main(level: number) {
 					let result = await controller.execute(cmd);
 										
 					if (result === "success") {
-						console.log("🎉 Le joueur a fini le niveau !");
-						const winMsg = document.createElement('div');
-						winMsg.textContent = `🎉 Niveau ${level} réussi ! Passage au niveau ${level + 1}...`;
-						winMsg.style.color = 'gold';
-						winMsg.style.fontWeight = 'bold';
-						winMsg.style.marginTop = '10px';
-						codeContainer.appendChild(winMsg);
-
-						await new Promise(r => setTimeout(r, 1000)); // petite pause
+						console.log("🎉 Le joueur a fini le niveau !"); // petite pause
 
 						// Nettoie la scène et recharge la suivante
-						document.querySelector<HTMLDivElement>('#app')!.innerHTML = "";
-						const module = await import('./main_page.ts');
-						module.run(level + 1);
-						return; // On sort pour éviter d’exécuter la suite
+						save_point();
+
+						const nextMapUrl = `/maps/maps${level + 1}.txt`;
+						try {
+							const res = await fetch(nextMapUrl);
+							const text = await res.text();
+							if (!res.ok || text.trim().startsWith("<")) {
+								// Si le fichier n'existe pas
+								const methodsUsedDiv = document.querySelector<HTMLDivElement>('#methods_used')!;
+								const endMsg = document.createElement('div');
+								endMsg.textContent = "🎯 Félicitations ! Tu as terminé tous les niveaux 🎉";
+								endMsg.style.color = 'gold';
+								endMsg.style.fontWeight = 'bold';
+								endMsg.style.marginTop = '15px';
+								methodsUsedDiv.appendChild(endMsg);
+								loadLeaderboard();
+								return;
+							}
+							else
+							{
+								const winMsg = document.createElement('div');
+								winMsg.textContent = `🎉 Niveau ${level} réussi ! Passage au niveau ${level + 1}...`;
+								winMsg.style.color = 'gold';
+								winMsg.style.fontWeight = 'bold';
+								winMsg.style.marginTop = '10px';
+								codeContainer.appendChild(winMsg);
+
+								await new Promise(r => setTimeout(r, 1000));
+								document.querySelector<HTMLDivElement>('#app')!.innerHTML = "";
+								// Sinon, on lance le niveau suivant
+								const module = await import('./main_page.ts');
+								module.run(level + 1);
+							}
+						} catch (err) {
+							console.error("Erreur lors de la vérification du prochain niveau :", err);
+						}
 					} else if (result === "fail") {
 					console.log("💥 Le joueur a échoué !");
 					} else {
@@ -144,8 +203,10 @@ async function main(level: number) {
 }
 
 export async function run(level: number) {
-  const { clientMethods  } = await getMapFileData(level);
-  console.log("clientMethods :", clientMethods);
+	actual_point = 10;
+	first = true;
+	const { clientMethods  } = await getMapFileData(level);
+	console.log("clientMethods :", clientMethods);
 
   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div id="game_page">
@@ -161,7 +222,13 @@ export async function run(level: number) {
       </div>
       <div id="left_part">
         <div id="methods_used">
-			<h2 style="text-align: center; width: 80%;">niveau ${level}</h2>
+			<h2 style="text-align: center; width: 80%;">
+				niveau ${level}
+				<span id="points_display" style="font-size: 1rem; color: gold; margin-left: 10px;">
+					(${actual_point}/${max_point})
+				</span>
+			</h2>
+			  
 			<p>{</p>
 			<p style="color: lightblue;">//le code qui va s'executer va apparaitre ici</p>
 			<p> }</p>
@@ -181,6 +248,21 @@ export async function run(level: number) {
 		
       </div>
     </div>
+	<div class="overlay" id="popupOverlay">
+		<div class="popup">
+			<div class="popup-header">
+				<span>Leaderboard</span>
+				<button id="closePopup">X</button>
+			</div>
+			<div style="margin-bottom: 10px;">	
+				<input type="text" id="input"/>
+				<button id="post">Post</button>
+			</div>
+			<div class="popup-content" id="popupContent">
+			
+			</div>
+		</div>
+	</div>
   </div>
   `
 
@@ -340,4 +422,94 @@ export async function run(level: number) {
       "'": '&#39;'
     } as any)[c]);
   }
+
+	const popupOverlay = document.getElementById("popupOverlay");
+	const popupContent = document.getElementById("popupContent");
+	const closePopup = document.getElementById("closePopup");
+	const url = "http://localhost:3000";
+	const postBtn = document.getElementById("post");
+	const input = document.getElementById("input");
+
+	// 🟡 POST button
+	postBtn.addEventListener("click", async (e) => {
+	e.preventDefault();
+
+	const name = input.value.trim();
+	if (!name) return alert("Please enter a name");
+
+	const score = Number(localStorage.getItem("point"));
+	localStorage.removeItem("point");
+	try {
+		const res = await fetch(url + "/info", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ name, score }),
+		});
+		
+		const data = await res.json();
+
+		if (res.ok) {
+		alert(`✅ Saved ${data.name} with score ${data.score}`);
+		input.value = "";
+		loadLeaderboard(); // Refresh leaderboard after saving
+		} else {
+		alert("❌ Error: " + (data.error || "Unknown error"));
+		}
+	} catch (err) {
+		console.error(err);
+		alert("❌ Failed to send data to server");
+	}
+	});
+
+
+	// 🔴 Close popup
+	closePopup.addEventListener("click", () => {
+		popupOverlay.style.display = "none";
+	});
 }
+
+async function loadLeaderboard() {
+	const popupOverlay = document.getElementById("popupOverlay");
+	const popupContent = document.getElementById("popupContent");
+	const closePopup = document.getElementById("closePopup");
+	const url = "http://localhost:3000";
+	const postBtn = document.getElementById("post");
+	const input = document.getElementById("input");
+
+	popupOverlay.style.display = "flex";
+	popupContent.innerHTML = "<p>Loading leaderboard...</p>";
+
+	try {
+		const res = await fetch(url + "/connexion", {
+		method: "GET",
+		headers: { "Content-Type": "application/json" },
+		});
+
+		if (!res.ok) throw new Error("Server returned " + res.status);
+
+		const data = await res.json();
+
+		if (!Array.isArray(data) || data.length === 0) {
+		popupContent.innerHTML = `
+			<p style="text-align:center; color:gray;">
+			🕹️ No users found yet.<br>Be the first to post a score!
+			</p>
+		`;
+		} else {
+		data.sort((a, b) => b.score - a.score);
+		popupContent.innerHTML = `
+			${data
+			.map((u, i) => `<div>${i + 1}. <b>${u.name}</b> — ${u.score}</div>`)
+			.join("")}
+		`;
+		}
+	} catch (err) {
+		console.error(err);
+		popupContent.innerHTML = `
+		<p style="color:red; text-align:center;">
+			⚠️ Could not load leaderboard.<br>
+			Make sure the backend is running.
+		</p>
+		`;
+	}
+	}
